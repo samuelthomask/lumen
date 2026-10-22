@@ -13,10 +13,10 @@ BEGIN
   BEGIN
     BLOCK "040504b0"
     BEGIN
-      VALUE "CompanyName", L"Samuel Thomas Kone\x010dn\x00fd (sam05th)"
+      VALUE "CompanyName", L"Samuel Thomas Kone\x010dn\x00fd (samuelthomask)"
       VALUE "FileDescription", "Lumen Setup"
       VALUE "ProductName", "Lumen"
-      VALUE "LegalCopyright", L"\x00a9 Samuel Thomas Kone\x010dn\x00fd (sam05th)"
+      VALUE "LegalCopyright", L"\x00a9 Samuel Thomas Kone\x010dn\x00fd (samuelthomask)"
       VALUE "FileVersion", "1.0.0.0"
       VALUE "ProductVersion", "1.0.0.0"
     END

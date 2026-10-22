@@ -4,7 +4,7 @@
 //
 // Parametry: /S tichá instalace, /D=cesta jiná cílová složka, /NOSHORTCUTS bez zástupců a registrů (pro testy),
 //            /uninstall odinstalovat, /KEEPDATA při odinstalaci nesmazat data uživatele.
-// Autor: Samuel Thomas Konečný (sam05th)
+// Autor: Samuel Thomas Konečný (samuelthomask)
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
@@ -32,8 +32,8 @@ using namespace Gdiplus;
 static const wchar_t* APP_NAME = L"Lumen";
 static const wchar_t* APP_VERSION = L"1.0.0";
 static const wchar_t* APP_AUTHOR = L"Samuel Thomas Konečný";
-static const wchar_t* APP_AUTHOR_HANDLE = L"sam05th";
-static const wchar_t* APP_URL = L"https://github.com/sam05th/Lumen";
+static const wchar_t* APP_AUTHOR_HANDLE = L"samuelthomask";
+static const wchar_t* APP_URL = L"https://github.com/samuelthomask/Lumen";
 static const wchar_t* UNINSTALL_KEY = L"Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Lumen";
 
 // ---------- texty ----------
