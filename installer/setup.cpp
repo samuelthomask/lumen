@@ -222,7 +222,7 @@ static int g_hover = -1;
 static float g_anim = 0;
 static float g_s = 1.f;   // měřítko podle DPI (okno je DPI-aware, jinak by Windows obraz roztáhly a rozmazaly)
 static RECT g_linkGh, g_linkIg;
-static const wchar_t* APP_INSTAGRAM_URL = L"";   // vyplnit adresou profilu; prázdné = tlačítko se nezobrazí
+static const wchar_t* APP_INSTAGRAM_URL = L"https://www.instagram.com/samuelthomasko/";   // vyplnit adresou profilu; prázdné = tlačítko se nezobrazí
 static std::thread g_worker;
 static std::atomic<bool> g_installOk{ false };
 
