@@ -6,6 +6,9 @@ No accounts, no telemetry events, no bundled content.
 
 🇨🇿 [Česká verze / Czech version](README.cs.md)
 
+### ⚠️ Important Notice
+This is not a guide for downloading illegal content. Lumen is only a player and provides no content. All links lead to third-party services. Use only content you have the right to watch. You are responsible for third-party addons and services. Do everything purely at your own risk.
+
 ![Home](docs/screenshots/board.png)
 
 ## Features
@@ -27,16 +30,6 @@ No accounts, no telemetry events, no bundled content.
 - **Installer**: a single `Lumen-Setup.exe` (per-user install, shortcuts, uninstaller) that includes everything, including the player library.
 - **Built-in streaming server**: direct links and torrents work out of the box, no debrid service and no other application needed.
 
-## Screenshots
-
-| Discover | Detail |
-|---|---|
-| ![Discover](docs/screenshots/discover.png) | ![Detail](docs/screenshots/detail.png) |
-| **Small previews** | **Library** |
-| ![Small previews](docs/screenshots/board-small.png) | ![Library](docs/screenshots/library.png) |
-| **Addons** | **Help** |
-| ![Addons](docs/screenshots/addons.png) | ![Help](docs/screenshots/help.png) |
-
 ## Requirements
 
 - Windows 10 / 11 (x64) with the **WebView2 runtime** (included in Windows 11).
@@ -46,58 +39,47 @@ No accounts, no telemetry events, no bundled content.
 ## Install
 
 1. Download **`Lumen-Setup.exe`** from the [Releases](../../releases) page of this repository.
-2. Run it.
-   The file is not code-signed, so Windows SmartScreen may warn you: *More info → Run anyway*.
+2. Run it. The file is not code-signed, so Windows SmartScreen may warn you: *More info → Run anyway*.
 3. Start **Lumen** from the desktop shortcut or the Start menu.
 
 Uninstall via *Settings → Apps* (or run `Uninstall.exe` in the install folder). You will be asked whether to also delete your data.
 
-### Streaming and torrents
+## How to get content (Recommended Paths)
 
-Lumen has its own local server (bundled Node.js + the open-source [WebTorrent](https://github.com/webtorrent/webtorrent) library, MIT):
+Lumen serves only as a player; by default, it is completely empty – without content and without pre-installed addons. You get movies and series by using addons that you must install yourself. (As an alternative to Lumen, you can also use [Syncler](https://syncler.net/)).
 
-- **Direct links** (for example the ones an addon gets through a debrid service) are played directly.
-- **Torrent sources** are streamed by Lumen itself while they download – **no debrid service is needed**. Playback starts after enough of the beginning
-  has arrived, so speed depends on the number of peers. Downloaded data is temporary and deleted when Lumen closes (or when another torrent is opened).
-  Note that torrent clients share data with other peers while downloading; a VPN is a common precaution. What you stream is your responsibility.
-- If a Stremio desktop application is installed, Lumen uses its streaming server instead.
+Just choose one of two paths and pay for only one service:
 
-> **Warning – torrents can be slow.** Torrent streaming is experimental. Playback depends entirely on how many people share the file:
-> large 4K files, rare releases or poorly seeded torrents may start slowly, stutter or not start at all.
-> For smooth playback use sources with a **direct link**, i.e. an addon that works with a paid debrid service or with a paid file-hosting account
-> (see [docs/ADDONS.md](docs/ADDONS.md)). Without one, expect buffering.
+### Path A - The cheapest (Webshare + Cineshare)
+You don't need to deal with any debrid. You'll find mostly Czech streams here, and Czech dubbing is available for most movies and series.
+1. Create and subscribe to an account on [Webshare](https://webshare.cz/).
+2. Go to the [Cineshare](https://wshare5.streamstr.stream/) addon page.
+3. Enter your Webshare login details to generate the installation link for Lumen.
 
-## Using Lumen
+### Path B - Biggest selection (Debrid + torrent addons)
+Here you buy one "debrid" account. **This is absolutely essential if you want to use addons from this category.**
 
-- **Addons** tab → install a community addon, or **Import** several addon URLs (one per line).
-  Details: [docs/ADDONS.md](docs/ADDONS.md).
-- Open a movie → above the list of sources set the language order and minimum quality.
-- Top right of the home / discover / library pages: three icons switch the preview size.
-- In the player: subtitle button → *Load subtitles from file*. Audio-track button appears when the file has several tracks.
+⚠️ **IMPORTANT WARNING: Why will it stutter without debrid?**
+If you try to use torrent addons (like Torrentio, Comet, etc.) directly, **without a paid debrid account (Real-Debrid or TorBox), playback will almost certainly stutter, take forever to load, or not start at all.** 
+This is because of how torrents work – without debrid, you rely on how fast other regular people on the internet send you the file, which is usually not enough. Debrid works by instantly downloading the film to its own extremely fast servers and smoothly streaming it directly to you. Only thanks to it can you play huge 4K movies without a single stutter, plus your IP address remains hidden.
+
+*   **Step 1: Choose a debrid service**
+    Choose and subscribe to **only one** of these services (both do the same):
+    *   [Real-Debrid](https://real-debrid.com/)
+    *   [TorBox](https://torbox.app/)
+
+*   **Step 2: Choose addons**
+    Once you have purchased debrid, you can install any of these addons:
+    *   [Torrentio](https://torrentio.strem.fun/configure) – The most used and stable addon.
+    *   [Comet](https://comet.elfhosted.com/) – Very fast addon optimized for debrid services.
+    *   [MediaFusion](https://mediafusion.elfhosted.com/configure) – Universal addon supporting many catalogs and live broadcasting.
+    *   [TorrentsDB](https://torrentsdb.com/configure) – Great alternative with a large database if another addon isn't working.
+
+*   **Step 3: Installation**
+    Open the addon configuration page, set the quality ideally to 4K. Enter your API key from your debrid service. Copy the generated address (ends in `manifest.json`), go to **Addons -> Import** in Lumen, paste it and click **Install all**. Do not share this link publicly.
 
 ## Privacy
-
-Lumen has no accounts and its interface layer sends no analytics events. It does make network requests to what you use:
-addon servers you install, image servers for posters / backdrops / logos, and the public metadata service used for descriptions.
-The bundled application core may contact its default catalog services. Your library, settings and addon URLs are stored locally
-in `%LOCALAPPDATA%\StremioMod` (WebView2 profile). Addon URLs can contain personal keys – they are not encrypted at rest.
-
-## Build from source
-
-See [docs/BUILD.md](docs/BUILD.md). In short: `pnpm build` in `web/`, build the shell, then `installer\build-installer.bat`.
-
-## Project structure
-
-```
-web/        modified stremio-web (React) – the user interface            (GPL-2.0)
-shell/      Windows shell: WebView2 + libmpv, HDR switching, local server (GPL-2.0+)
-installer/  self-contained setup.exe                                      (GPL-2.0+)
-docs/       documentation and screenshots
-```
-
-How the UI talks to the shell: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Lumen has no accounts and its interface layer sends no analytics events. It does make network requests to what you use: addon servers you install, image servers for posters / backdrops / logos, and the public metadata service used for descriptions. The bundled application core may contact its default catalog services. Your library, settings and addon URLs are stored locally in `%LOCALAPPDATA%\StremioMod`.
 
 ## License
-
-GPL-2.0 – see [LICENSE](LICENSE) and [NOTICE.md](NOTICE.md). Not affiliated with Stremio. Lumen contains no content;
-you are responsible for the addons and services you use.
+GPL-2.0 – see [LICENSE](LICENSE) and [NOTICE.md](NOTICE.md). Not affiliated with Stremio. Lumen contains no content; you are responsible for the addons and services you use.
