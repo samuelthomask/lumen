@@ -36,4 +36,4 @@ Above the list of sources on a movie page you can set:
 To keep this repository clean, all detailed tutorials, recommendations for community addons, and guides on setting up debrid services for smooth playback are hosted externally.
 Z důvodu udržení čistého repozitáře jsou všechny detailní návody na instalaci komunitních doplňků a zprovoznění debrid služeb pro plynulé přehrávání přesunuty mimo GitHub.
 
-👉 **[Community Setup Guide / Komunitní návod na nastavení a addony](VLOŽ_ODKAZ_NA_RENTRY_NEBO_JINAM)**
+👉 **[Community Setup Guide / Komunitní návod na nastavení a addony](https://rentry.co/4mmr8vxy)**
