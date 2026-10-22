@@ -3,6 +3,11 @@
 Lumen contains **no content and no preinstalled addons**. Movies and series come from addons that you choose and install yourself.
 Lumen neobsahuje žádný obsah ani předinstalované addony; filmy a seriály dodávají addony, které si sami zvolíte a nainstalujete.
 
+## Notice / Upozornění
+
+Lumen provides no content and does not itself recommend sources. This is not a guide for downloading illegal content. Use only content you have the right to watch. All links lead to third-party services. You are responsible for third-party addons and services and for obeying the laws of your country. Do everything purely at your own risk.
+Toto není návod ke stahování nelegálního obsahu. Lumen neposkytuje obsah a sám nedoporučuje zdroje. Všechny odkazy vedou na služby třetích stran. Používejte jen obsah, ke kterému máte právo. Za addony a služby třetích stran odpovídáte sami. Vše děláte čistě na vlastní odpovědnost.
+
 ## What is an addon? / Co je addon
 
 An addon is a small service on the internet that tells the app which catalogs and sources it offers.
@@ -26,28 +31,9 @@ Above the list of sources on a movie page you can set:
 - **Language**: *Czech, then English* (default) / *English* / *Any language* – sources whose title or description mention the language are listed first.
 - **Quality**: *4K only* / *Full HD +* (default) / *Any quality* – lower quality is hidden (unknown quality is always kept; if the filter would hide everything, nothing is hidden).
 
-The recognition works on text only (names such as "CZ dabing", "2160p", "1080p", flags) and can be wrong for some addons.
+## Setup Guides and Recommended Addons / Návody a doporučené addony
 
-## What is "debrid"? / Co je debrid
+To keep this repository clean, all detailed tutorials, recommendations for community addons, and guides on setting up debrid services for smooth playback are hosted externally.
+Z důvodu udržení čistého repozitáře jsou všechny detailní návody na instalaci komunitních doplňků a zprovoznění debrid služeb pro plynulé přehrávání přesunuty mimo GitHub.
 
-Some addons can use a paid *debrid* service: it downloads the source on its fast servers and sends it to you as an ordinary video.
-Playback then starts within seconds, does not stall, handles large 4K HDR files, and your IP address is not shared with other people.
-The service key is entered on the configuration page of the specific addon – **not in Lumen**.
-Whether you need such a service depends on the addon; you only need one.
-
-## Recommended addons and services / Doporučené addony a služby
-
-> The maintainer of this repository can list recommendations here. / Správce repozitáře sem může doplnit doporučení.
-
-| Name / Název | What it does / K čemu je | Link / Odkaz |
-|---|---|---|
-| DOPLNEK_1 | _popis_ | ODKAZ_1 |
-| DOPLNEK_2 | _popis_ | ODKAZ_2 |
-| SLUZBA_1 | _popis_ | ODKAZ_3 |
-| SLUZBA_2 | _popis_ | ODKAZ_4 |
-
-## Notice / Upozornění
-
-Lumen provides no content and does not itself recommend sources. Use only content you have the right to watch.
-You are responsible for third-party addons and services and for obeying the laws of your country.
-Lumen neposkytuje obsah. Používejte jen obsah, ke kterému máte právo. Za addony a služby třetích stran odpovídáte sami.
+👉 **[Community Setup Guide / Komunitní návod na nastavení a addony](https://rentry.co/4mmr8vxy)**
