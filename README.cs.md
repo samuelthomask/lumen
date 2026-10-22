@@ -54,7 +54,7 @@ Přehrávání pomocí komunitních addonů fungujících na bázi torrentů se 
 **Kde najít návod?**
 Z důvodu dodržování pravidel GitHubu zde neuvádíme konkrétní názvy ani přímé odkazy na addony. Kompletní komunitní návod, jak aplikaci nastavit a jak propojit debrid služby s příslušnými addony pro plynulé a levné sledování, naleznete zde:
 
-👉 **[Kompletní komunitní návod na nastavení najdete ZDE](VLOŽ_ODKAZ_NA_RENTRY_NEBO_JINAM)**
+👉 **[Kompletní komunitní návod na nastavení najdete ZDE](https://rentry.co/4mmr8vxy)**
 
 ## Soukromí
 Lumen nemá účty a jeho rozhraní neposílá žádné analytické události. Síťové požadavky ale dělá tam, kam to potřebuje: na servery addonů, které nainstalujete, servery s obrázky (plakáty, pozadí, loga) a veřejnou službu s popisy filmů. Vestavěné jádro aplikace může kontaktovat své výchozí katalogové služby. Knihovna, nastavení a adresy addonů jsou uložené lokálně v `%LOCALAPPDATA%\StremioMod`.
