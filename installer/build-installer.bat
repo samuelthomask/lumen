@@ -35,7 +35,7 @@ if not exist "%ROOT%\dist" mkdir "%ROOT%\dist"
 pushd "%~dp0"
 rc /nologo /fo "%~dp0stage\setup.res" setup.rc || exit /b 1
 cl /nologo /std:c++17 /EHsc /O2 /utf-8 /W3 /DUNICODE /D_UNICODE /D_CRT_SECURE_NO_WARNINGS setup.cpp /Fo"%~dp0stage\\" /Fe"%ROOT%\dist\Lumen-Setup.exe" ^
-  /link /SUBSYSTEM:WINDOWS "%~dp0stage\setup.res" user32.lib gdi32.lib ole32.lib shell32.lib shlwapi.lib advapi32.lib comctl32.lib || exit /b 1
+  /link /SUBSYSTEM:WINDOWS "%~dp0stage\setup.res" user32.lib gdi32.lib ole32.lib shell32.lib shlwapi.lib advapi32.lib comctl32.lib gdiplus.lib dwmapi.lib || exit /b 1
 popd
 echo.
 dir "%ROOT%\dist\Lumen-Setup.exe"
