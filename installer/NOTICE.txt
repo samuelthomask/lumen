@@ -1,0 +1,10 @@
+Lumen
+=====
+Lumen is a player and catalog browser built from the open-source Stremio web UI (stremio-web, GPL-2.0, see LICENSES\stremio-web-GPL-2.0.md)
+with a custom Windows shell (WebView2 + libmpv). Font: Inter (SIL OFL 1.1, see LICENSES\Inter-OFL.txt).
+
+Lumen contains no video content and no preinstalled addons. It includes a small built-in local server; torrent streaming
+needs an external compatible streaming server (Lumen uses an installed Stremio's server automatically if there is one).
+
+The player library libmpv-2.dll is a third-party build of mpv (see LICENSES\THIRD-PARTY-SOURCES.md for exact version and source).
+Source code of the modified web UI is available from the author on request (GPL-2.0).

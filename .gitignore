@@ -1,0 +1,11 @@
+﻿node_modules/
+build/
+dist/
+out/
+stage/
+*.lib
+*.exp
+*.obj
+*.res
+*.local.js
+.DS_Store

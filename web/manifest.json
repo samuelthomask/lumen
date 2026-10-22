@@ -1,0 +1,17 @@
+﻿{
+    "name": "Lumen",
+    "short_name": "Lumen",
+    "description": "Player and catalog browser",
+    "background_color": "#060609",
+    "theme_color": "#060609",
+    "orientation": "any",
+    "display": "standalone",
+    "id": "./",
+    "scope": "./",
+    "start_url": "./",
+    "icons": [
+        { "src": "images/icon_196x196.png", "sizes": "196x196", "type": "image/png" },
+        { "src": "images/icon_512x512.png", "sizes": "512x512", "type": "image/png" },
+        { "src": "images/maskable_icon_512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    ]
+}

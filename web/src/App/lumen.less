@@ -1,0 +1,733 @@
+// Lumen: vlastní vzhled (tmavý, průsvitné sklo, písmo Inter), nezávislý na komponentách.
+// Přepisuje jen proměnné a používá selektory podle části názvu třídy (CSS moduly: [local]-[hash]).
+
+@font-face { font-family: 'Inter'; font-weight: 400; src: url('/assets/fonts/Inter-Regular.ttf') format('truetype'); }
+@font-face { font-family: 'Inter'; font-weight: 500; src: url('/assets/fonts/Inter-Medium.ttf') format('truetype'); }
+@font-face { font-family: 'Inter'; font-weight: 600 700; src: url('/assets/fonts/Inter-SemiBold.ttf') format('truetype'); }
+
+:root {
+    --primary-background-color: rgba(6, 6, 9, 1);
+    --secondary-background-color: rgba(18, 19, 28, 1);
+    --primary-foreground-color: rgba(255, 255, 255, 0.94);
+    --secondary-foreground-color: rgba(6, 6, 9, 1);
+    --primary-accent-color: rgb(10, 132, 255);
+    --secondary-accent-color: rgb(10, 132, 255);
+    --overlay-color: rgba(255, 255, 255, 0.08);
+    --modal-background-color: rgba(34, 35, 44, 0.62);
+    --outer-glow: 0 0.6rem 2.4rem rgba(0, 0, 0, 0.45);
+    --border-radius: 1.1rem;
+    --glass-blur: blur(2.2rem) saturate(180%);
+    --glass-border: 1px solid rgba(255, 255, 255, 0.12);
+    --glass-fill: rgba(255, 255, 255, 0.07);
+}
+
+html {
+    font-family: 'Inter', 'Arial', 'Helvetica', 'TwemojiFlags', sans-serif;
+    letter-spacing: -0.005em;
+
+    body {
+        background:
+            radial-gradient(120% 90% at 85% -10%, rgba(10, 132, 255, 0.16) 0%, transparent 55%),
+            radial-gradient(90% 70% at 0% 110%, rgba(120, 90, 255, 0.14) 0%, transparent 60%),
+            linear-gradient(180deg, var(--primary-background-color) 0%, var(--secondary-background-color) 100%);
+    }
+}
+
+// Vyhledávání: průsvitná pilulka
+[class*='search-bar-container'] {
+    background-color: var(--glass-fill);
+    border: var(--glass-border);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    transition: background-color 160ms ease, border-color 160ms ease;
+
+    &:focus-within {
+        background-color: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+}
+
+// Plakáty: jemné zaoblení, zvětšení a stín místo tlustého rámečku
+[class*='meta-item-container'] [class*='poster-container'] {
+    border-radius: 1.1rem;
+    box-shadow: 0 0.5rem 1.6rem rgba(0, 0, 0, 0.45);
+    transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 220ms ease;
+}
+
+[class*='meta-item-container']:hover [class*='poster-container'],
+[class*='meta-item-container']:focus-within [class*='poster-container'],
+[class*='meta-item-container'][class*='hovered'] [class*='poster-container'],
+[class*='meta-item-container'][class*='active'] [class*='poster-container'] {
+    box-shadow: 0 1.2rem 2.8rem rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.25);
+    transform: translateY(-0.2rem);
+}
+
+// Vyskakovací okna, nabídky, dialogy: sklo
+[class*='menu-container']:not([class*='buttons-menu']), [class*='modal-dialog-container'], [class*='popup-menu'],
+[class*='tooltip-container'], [class*='toast-container'] {
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: var(--glass-border);
+}
+
+// Tlačítka a aktivní položky s akcentem: čisté zaoblení
+[class*='button-container'] {
+    transition: background-color 140ms ease, transform 140ms ease;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.16);
+}
+
+// ---------- Přehrávač: plovoucí skleněná lišta ve stylu Apple TV ----------
+// Pozn.: pod webem je nativní video (mpv), takže pravé rozostření pozadí nejde; používáme tmavou průsvitnou výplň.
+
+// Ovládací lišta je zároveň vrstva (layer) i kontejner na jednom prvku: odsazení od okrajů děláme pozicí.
+[class*='control-bar-layer'] {
+    left: 3rem !important;
+    right: 3rem !important;
+    bottom: 2.4rem !important;
+    padding: 0.2rem 1.6rem 0.7rem !important;
+    border-radius: 2.2rem;
+    background: rgba(24, 25, 32, 0.66);
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    box-shadow: 0 1.6rem 3.4rem rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+
+    &::before { display: none !important; }
+}
+
+[class*='control-bar-buttons-container'] {
+    [class*='control-bar-button']:not([class*='control-bar-buttons']), [class*='control-bar-buttons-menu-button'] {
+        width: 3.6rem !important;
+        height: 3.6rem !important;
+        border-radius: 50% !important;
+        transition: background-color 140ms ease, transform 140ms ease;
+
+        &:hover:not([class*='disabled']) {
+            background-color: rgba(255, 255, 255, 0.16) !important;
+            transform: scale(1.06);
+        }
+        &:active { transform: scale(0.96); }
+
+        [class*='icon'] { width: 2rem !important; height: 2rem !important; }
+    }
+
+    [class*='volume-slider'] { margin: 0 1rem !important; }
+}
+
+// Posuvník přehrávání a hlasitosti: tenká bílá lišta, malý bílý puntík
+[class*='seek-bar-container'], [class*='control-bar-buttons-container'] {
+    [class*='track-before'] { background-color: rgba(255, 255, 255, 0.22) !important; }
+    [class*='track-after']:not([class*='audio-boost']) { background-color: rgba(255, 255, 255, 0.96) !important; }
+    [class*='thumb'] {
+        background-color: #fff !important;
+        box-shadow: 0 0.15rem 0.5rem rgba(0, 0, 0, 0.5);
+
+        &::after { box-shadow: none !important; filter: none !important; }
+    }
+}
+
+[class*='seek-bar-container'] [class*='label'] {
+    font-weight: 500;
+    font-size: 1rem !important;
+    opacity: 0.85;
+}
+
+// Nabídky přehrávače (titulky, zvuk, rychlost, ...)
+[class*='player-container'] [class*='menu-layer'] {
+    border-radius: 1.6rem !important;
+    background-color: rgba(26, 27, 34, 0.78) !important;
+    border: var(--glass-border);
+    box-shadow: 0 1.6rem 3.4rem rgba(0, 0, 0, 0.55) !important;
+}
+
+// Horní lišta v přehrávači: titulek výraznější
+[class*='player-container'] [class*='nav-bar-layer'] [class*='title'] {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+// ---------- Rozvržení ve stylu tvOS: plovoucí skleněný postranní panel s popisky ----------
+
+:root {
+    --vertical-nav-bar-size: 16.5rem;
+}
+
+[class*='vertical-nav-bar-container'] {
+    top: 1.1rem !important;
+    bottom: 1.1rem !important;
+    left: 1.1rem !important;
+    width: calc(var(--vertical-nav-bar-size) - 1.4rem) !important;
+    padding: 1.2rem 0.8rem !important;
+    gap: 0.25rem !important;
+    align-items: stretch !important;
+    border-radius: 2.2rem;
+    background: rgba(32, 33, 42, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.11);
+    box-shadow: 0 1.6rem 3.4rem rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+
+    // Značka nahoře v panelu
+    &::before {
+        content: 'Lumen';
+        flex: none;
+        padding: 0.3rem 1rem 1.1rem;
+        font-size: 1.25rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        color: rgba(255, 255, 255, 0.95);
+    }
+
+    [class*='nav-tab-button-container'] {
+        flex-direction: row !important;
+        justify-content: flex-start !important;
+        gap: 0.95rem;
+        width: auto !important;
+        height: 3.1rem !important;
+        min-height: 3.1rem !important;
+        padding: 0 1rem;
+        border-radius: 1.1rem !important;
+        transition: background-color 140ms ease;
+
+        [class*='icon'] {
+            width: 1.45rem !important;
+            height: 1.45rem !important;
+            margin: 0 !important;
+            opacity: 0.8 !important;
+        }
+
+        [class*='label'] {
+            max-height: none !important;
+            padding: 0 !important;
+            opacity: 1 !important;
+            font-size: 1.02rem !important;
+            font-weight: 500 !important;
+            letter-spacing: -0.005em;
+        }
+
+        &:hover { background-color: rgba(255, 255, 255, 0.1) !important; }
+
+        // vybraná položka: bílá pilulka s tmavým textem
+        &[class*='selected'] {
+            background-color: rgba(255, 255, 255, 0.93) !important;
+            box-shadow: 0 0.3rem 1.2rem rgba(0, 0, 0, 0.3);
+
+            [class*='icon'], [class*='label'] { color: #0b0b10 !important; opacity: 1 !important; }
+        }
+    }
+}
+
+// Horní lišta: bez loga (je v panelu), čistší tlačítka
+[class*='horizontal-nav-bar-container'] [class*='logo-container'] { visibility: hidden; }
+
+// ---------- Společné prvky: karty, dialogy, tlačítka ----------
+
+:root {
+    --glass-card: rgba(255, 255, 255, 0.06);
+    --glass-card-hover: rgba(255, 255, 255, 0.11);
+}
+
+// Tlačítka s vyplněným akcentem (např. Add addon, Install): bílý text na modré
+[class*='button-container'][class*='add-button'], [class*='install-button-container'] {
+    background-color: var(--primary-accent-color) !important;
+    color: #fff !important;
+    border-radius: 3rem;
+}
+
+// Dialogy (potvrzení, detail addonu, sdílení): sklo se zaoblením
+[class*='modal-container'] {
+    background-color: rgba(0, 0, 0, 0.55) !important;
+    backdrop-filter: blur(1.4rem);
+    -webkit-backdrop-filter: blur(1.4rem);
+}
+[class*='modal-dialog-container'], [class*='addon-details-modal-container'] {
+    border-radius: 2rem !important;
+    background-color: rgba(30, 31, 40, 0.82) !important;
+    border: var(--glass-border);
+    box-shadow: 0 2rem 4.5rem rgba(0, 0, 0, 0.6) !important;
+}
+
+// ---------- Addony ----------
+[class*='addon-container'] {
+    border-radius: 1.7rem !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    background-color: var(--glass-card) !important;
+    transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+
+    &:hover {
+        background-color: var(--glass-card-hover) !important;
+        border-color: rgba(255, 255, 255, 0.2) !important;
+    }
+
+    [class*='buttons-container'] [class*='button-container'], [class*='buttons-container'] [class*='uninstall'], [class*='buttons-container'] [class*='install'] {
+        border-radius: 3rem !important;
+        border: none !important;
+        background-color: rgba(255, 255, 255, 0.13) !important;
+
+        &:hover { background-color: rgba(255, 255, 255, 0.22) !important; }
+    }
+}
+
+// ---------- Detail titulu: plovoucí skleněný seznam streamů / epizod ----------
+[class*='metadetails-content'] {
+    gap: 0.5rem;
+}
+
+[class*='streams-list-container'], [class*='videos-list-container'] {
+    margin: 5.5rem 1.4rem 1.4rem 0 !important;
+    border-radius: 2rem !important;
+    background-color: rgba(24, 25, 32, 0.66) !important;
+    border: var(--glass-border);
+    box-shadow: 0 1.6rem 3.4rem rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+}
+
+[class*='stream-container'] {
+    border-radius: 1.2rem !important;
+    transition: background-color 140ms ease, transform 140ms ease;
+
+    &:hover, &:focus { background-color: var(--glass-card-hover) !important; }
+}
+
+[class*='metadetails-container'] [class*='background-image-layer'] {
+    background-color: rgba(6, 6, 9, 1) !important;
+
+    [class*='background-image'] { opacity: 0.55 !important; }
+
+    &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+            linear-gradient(90deg, rgba(6, 6, 9, 0.85) 0%, rgba(6, 6, 9, 0.35) 55%, rgba(6, 6, 9, 0.7) 100%),
+            linear-gradient(0deg, rgba(6, 6, 9, 0.85) 0%, transparent 40%);
+        pointer-events: none;
+    }
+}
+
+// Panel s náhledem u Discover a štítky (žánry, herci): sklo
+[class*='meta-preview-container'] {
+    border-radius: 2rem;
+}
+[class*='meta-preview-container'] [class*='chip'], [class*='chips']:not([class*='lumen']) [class*='chip']:not([class*='lumen']) {
+    border-radius: 3rem !important;
+    background-color: rgba(255, 255, 255, 0.12) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+// ---------- Nastavení ----------
+[class*='settings-content'] > [class^='menu-'] {
+    [class*='button'] {
+        border-radius: 1.2rem !important;
+        height: 3.2rem !important;
+        padding: 0 1.2rem !important;
+        opacity: 0.7 !important;
+
+        &:hover { background-color: var(--glass-card-hover) !important; }
+
+        &[class*='selected'] {
+            opacity: 1 !important;
+            background-color: rgba(255, 255, 255, 0.93) !important;
+            color: #0b0b10 !important;
+
+            * { color: #0b0b10 !important; }
+        }
+    }
+}
+
+[class*='sections-container'] [class^='section-'] {
+    max-width: 44rem !important;
+    margin: 0 0 1.6rem;
+    padding: 2.2rem 2.6rem 0.4rem !important;
+    border-radius: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    background-color: var(--glass-card);
+
+    [class*='label'] { font-weight: 600; letter-spacing: -0.02em; }
+}
+
+// Přepínače (toggle) a posuvníky v nastavení: styl iOS
+[class*='toggle-container'] {
+    border-radius: 3rem !important;
+}
+
+// Karty v řadách (široké): jemnější stín a zaoblení
+[class*='board-row-landscape'] [class*='poster-container'] {
+    border-radius: 1.4rem;
+}
+
+// ---------- Discover: mřížka širokých dlaždic, vyhrazené místo pro spodní panel ----------
+[class*='discover-content'] [class*='catalog-container'] [class*='meta-items-container'] {
+    grid-template-columns: repeat(auto-fill, minmax(var(--discover-tile-min, 19rem), 1fr)) !important;
+    grid-gap: 0.3rem !important;
+    padding-bottom: 9rem !important;
+    margin-right: 0.5rem !important;
+}
+
+// ---------- Detail titulu: hero nahoře, zdroje/epizody pod ním přes celou šířku ----------
+[class*='metadetails-container'] [class*='metadetails-content'] {
+    display: block !important;
+    overflow-y: auto !important;
+    padding: var(--top-overlay-size) 3rem 3rem !important;
+    gap: 0 !important;
+
+    > [class*='spacing'] { display: none !important; }
+
+    // horní část: velká plocha s pozadím (viditelné přes celé okno) a skleněnou kartou s informacemi
+    > [class*='meta-preview'] {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: flex-end;
+        min-height: calc(100vh / var(--interface-scale) - 17rem);
+        padding: 0 0 1.6rem !important;
+
+        [class*='meta-info-container'] {
+            flex: none !important;
+            align-self: flex-start !important;
+            width: min(48rem, 100%);
+            max-height: none !important;
+            overflow: visible !important;
+            padding: 1.6rem 2rem 1.8rem;
+            border-radius: 2rem;
+            background: rgba(24, 25, 34, 0.42);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            box-shadow: 0 1.4rem 3rem rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(2.4rem) saturate(180%);
+            -webkit-backdrop-filter: blur(2.4rem) saturate(180%);
+        }
+    }
+
+    // spodní část: seznam zdrojů / epizod
+    > [class*='streams-list'], > [class*='videos-list'] {
+        flex: none !important;
+        width: 100% !important;
+        height: auto !important;
+        margin: 0 !important;
+        border-radius: 2rem !important;
+        background-color: rgba(24, 25, 34, 0.58) !important;
+        overflow: visible !important;
+    }
+}
+
+// ---------- Zdroje a epizody: mřížka karet, ať ve fullscreenu nezůstává prázdné místo ----------
+[class*='streams-list-container'] {
+    [class*='select-choices-wrapper'] { max-width: 30rem; }
+
+    [class*='streams-container'] {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fill, minmax(38rem, 1fr));
+        gap: 0.5rem 0.9rem;
+        align-content: start;
+        padding: 0.6rem 1.2rem 1.4rem !important;
+    }
+}
+
+[class*='videos-list-container'] {
+    [class*='seasons-bar'], [class*='search-bar-container'] { max-width: 34rem; }
+
+    [class*='videos-container'] {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fill, minmax(30rem, 1fr));
+        gap: 0.5rem 0.9rem;
+        align-content: start;
+        padding: 0.6rem 1.2rem 1.4rem !important;
+    }
+
+    [class*='video-container'] {
+        border-radius: 1.4rem !important;
+        background-color: var(--glass-card);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        transition: background-color 140ms ease;
+
+        &:hover { background-color: var(--glass-card-hover); }
+    }
+}
+
+// Zdroje jako karty
+[class*='streams-list-container'] [class*='stream-container'] {
+    margin-bottom: 0 !important;
+    padding: 0.7rem 1rem !important;
+    background-color: var(--glass-card);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+// ---------- Velikost náhledů: 3 předvolby (html[data-density] = s | m | l) ----------
+
+// Přepínač v horní liště
+.lumen-density {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+    padding: 0.25rem;
+    margin-right: 0.7rem;
+    border-radius: 2rem;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(1.4rem);
+    -webkit-backdrop-filter: blur(1.4rem);
+
+    .lumen-density-button {
+        display: grid;
+        place-items: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        cursor: pointer;
+        color: #fff;
+        opacity: 0.55;
+        transition: background-color 140ms ease, opacity 140ms ease;
+
+        &:hover { opacity: 1; background-color: rgba(255, 255, 255, 0.14); }
+
+        &.selected {
+            opacity: 1;
+            color: #0b0b10;
+            background-color: rgba(255, 255, 255, 0.93);
+        }
+    }
+}
+
+// Řady (Board, vyhledávání): kolik dlaždic je vidět
+html[data-density='l'] [class*='meta-row-container'] [class*='meta-items-container'] {
+    > :nth-child(-n+3) { display: block !important; }
+    > :nth-child(n+4) { display: none !important; }
+}
+html[data-density='m'] [class*='meta-row-container'] [class*='meta-items-container'] {
+    > :nth-child(-n+5) { display: block !important; }
+    > :nth-child(n+6) { display: none !important; }
+}
+html[data-density='s'] [class*='meta-row-container'] [class*='meta-items-container'] {
+    > :nth-child(-n+8) { display: block !important; }
+    > :nth-child(n+9) { display: none !important; }
+}
+
+// Mřížky (Discover, Library): minimální šířka dlaždice
+html[data-density='l'] { --discover-tile-min: 30rem; --library-tile-min: 16rem; }
+html[data-density='m'] { --discover-tile-min: 19rem; --library-tile-min: 11rem; }
+html[data-density='s'] { --discover-tile-min: 12.5rem; --library-tile-min: 8rem; }
+
+[class*='library-content'] [class*='meta-items-container'] {
+    grid-template-columns: repeat(auto-fill, minmax(var(--discover-tile-min, 19rem), 1fr)) !important;
+}
+
+// Logo/název na dlaždici se přizpůsobí velikosti
+html[data-density='s'] [class*='title-overlay-layer'] {
+    padding: 0.5rem 0.6rem;
+    [class*='title-logo'] { max-height: 1.9rem; }
+    [class*='title-text'] { font-size: 0.85rem !important; }
+}
+html[data-density='l'] [class*='title-overlay-layer'] {
+    padding: 1.2rem 1.4rem;
+    [class*='title-logo'] { max-height: 5rem; }
+    [class*='title-text'] { font-size: 1.7rem !important; }
+}
+
+// ---------- Preference zdrojů (jazyk, kvalita) nad seznamem ----------
+.lumen-stream-prefs {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.4rem 1.4rem 0.6rem;
+
+    .lumen-pref-row {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.45rem;
+    }
+
+    .lumen-pref-label {
+        flex: none;
+        width: 5.5rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        opacity: 0.5;
+    }
+
+    .lumen-pref-chip {
+        height: 2.2rem;
+        padding: 0 1rem;
+        border-radius: 2.2rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        background-color: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: background-color 140ms ease;
+
+        &:hover { background-color: rgba(255, 255, 255, 0.16); }
+        &.selected { background-color: rgba(255, 255, 255, 0.93); border-color: transparent; color: #0b0b10; }
+    }
+
+    .lumen-pref-hidden {
+        margin-left: 0.4rem;
+        font-size: 0.82rem;
+        opacity: 0.55;
+    }
+}
+
+// ---------- Import addonů ----------
+.lumen-import-button {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 3rem;
+    margin-left: 0.7rem;
+    padding: 0 1.3rem;
+    border-radius: 3rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    transition: background-color 140ms ease;
+
+    &:hover { background-color: rgba(255, 255, 255, 0.2); }
+
+    .lumen-import-icon { width: 1.2rem; height: 1.2rem; }
+    .lumen-import-label { font-size: 1rem; font-weight: 500; }
+}
+
+.lumen-import-modal {
+    [class*='modal-dialog-container'] { width: min(42rem, 90vw); }
+
+    .lumen-import-notice { font-size: 0.92rem; line-height: 1.45; opacity: 0.75; margin-bottom: 1rem; }
+
+    .lumen-import-text {
+        width: 100%;
+        height: 12rem;
+        padding: 0.9rem 1.1rem;
+        border-radius: 1.2rem;
+        resize: vertical;
+        overflow: auto;
+        font-size: 0.9rem;
+        font-family: Consolas, monospace;
+        color: inherit;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        user-select: text;
+    }
+}
+
+// ---------- Ovládací lišta přehrávače: průsvitné „liquid glass“ ----------
+// Pod webem je nativní video, takže skutečné rozostření pozadí nejde; místo toho lehká průsvitná výplň s odleskem.
+[class*='control-bar-layer'] {
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 100%),
+        rgba(12, 13, 18, 0.22) !important;
+    border: 1px solid rgba(255, 255, 255, 0.22) !important;
+    box-shadow: 0 1.4rem 3rem rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35), inset 0 -1px 0 rgba(255, 255, 255, 0.06) !important;
+}
+
+[class*='player-container'] [class*='menu-layer'] {
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.05) 100%),
+        rgba(12, 13, 18, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+// Tlačítko „načíst titulky ze souboru“
+.lumen-load-subtitles {
+    margin: 0 0 0.8rem;
+    padding: 0.7rem 1rem;
+    width: 100%;
+    border-radius: 1.2rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    background-color: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    transition: background-color 140ms ease;
+
+    &:hover { background-color: rgba(255, 255, 255, 0.22); }
+}
+
+// ---------- Nápověda ----------
+.lumen-help {
+    max-width: 62rem;
+    height: 100%;
+    padding: 1.2rem 2.4rem 4rem 1.6rem;
+    overflow-y: auto;
+
+    .lumen-help-title { font-size: 2.6rem; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 0.6rem; }
+    .lumen-help-lead { font-size: 1.1rem; line-height: 1.55; opacity: 0.85; margin-bottom: 1.6rem; }
+
+    .lumen-help-card {
+        margin-bottom: 1.4rem;
+        padding: 1.8rem 2.2rem;
+        border-radius: 2rem;
+        background-color: var(--glass-card);
+        border: 1px solid rgba(255, 255, 255, 0.09);
+
+        h2 { font-size: 1.4rem; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 1rem; }
+        ol { padding-left: 1.4rem; }
+        li { list-style: decimal; line-height: 1.55; margin-bottom: 0.7rem; opacity: 0.9; }
+        p { line-height: 1.55; opacity: 0.85; }
+    }
+
+    .lumen-help-addons { display: flex; flex-direction: column; gap: 0.9rem; }
+
+    .lumen-help-addon {
+        padding: 1rem 1.3rem;
+        border-radius: 1.4rem;
+        background-color: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+
+        .lumen-help-addon-name { font-size: 1.15rem; font-weight: 600; margin-bottom: 0.2rem; }
+        .lumen-help-addon-about { font-size: 0.95rem; line-height: 1.45; opacity: 0.75; margin-bottom: 0.6rem; }
+        .lumen-help-addon-links { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .lumen-help-nolink { font-size: 0.9rem; opacity: 0.5; }
+    }
+
+    .lumen-help-link {
+        padding: 0.45rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.92rem;
+        font-weight: 500;
+        background-color: rgba(10, 132, 255, 0.9);
+        color: #fff;
+        cursor: pointer;
+        transition: background-color 140ms ease;
+
+        &:hover { background-color: rgb(40, 150, 255); }
+    }
+
+    .lumen-help-warning {
+        border-color: rgba(255, 190, 70, 0.35);
+        background-color: rgba(255, 170, 40, 0.08);
+    }
+}
+
+.lumen-help .lumen-help-card ul { padding-left: 1.4rem; margin: 0.6rem 0 1rem; li { list-style: disc; } }
+.lumen-help .lumen-help-card p + ul, .lumen-help .lumen-help-card ul + p { margin-top: 0.6rem; }
+
+.lumen-help .lumen-help-note { margin-bottom: 1rem; padding: 0.9rem 1.2rem; border-radius: 1.2rem; background-color: rgba(10, 132, 255, 0.12); border: 1px solid rgba(10, 132, 255, 0.3); }
+.lumen-help .lumen-help-card > .lumen-help-addon-links { margin-top: 0.9rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+// ---------- Nápověda: kompaktní rozložení (dvě cesty vedle sebe) ----------
+.lumen-help {
+    .lumen-help-paths { display: grid; grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr)); gap: 1.2rem; margin-bottom: 0.2rem; }
+    .lumen-help-paths > .lumen-help-card { margin-bottom: 0; }
+
+    .lumen-help-card { padding: 1.4rem 1.8rem; margin-bottom: 1.2rem; h2 { margin-bottom: 0.6rem; font-size: 1.3rem; } p { font-size: 0.98rem; } li { margin-bottom: 0.4rem; font-size: 0.98rem; } }
+
+    .lumen-help-badge {
+        display: inline-block;
+        margin-bottom: 0.7rem;
+        padding: 0.25rem 0.8rem;
+        border-radius: 2rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .lumen-help-links { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.8rem; }
+
+    code { padding: 0.1rem 0.4rem; border-radius: 0.4rem; background-color: rgba(255, 255, 255, 0.1); font-family: Consolas, monospace; font-size: 0.9em; user-select: text; }
+}
+
+.lumen-help .lumen-help-link-static { background-color: rgba(255, 255, 255, 0.12); cursor: default; }

@@ -1,0 +1,8 @@
+/node_modules
+/build
+/yarn.lock
+/npm-debug.log
+.DS_Store
+.prettierignore
+# Lumen: osobní (neveřejná) nápověda se seznamem doporučení se nikdy nedostane do veřejného repozitáře
+*.local.js
