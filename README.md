@@ -54,7 +54,7 @@ Streaming via torrent-based community addons will almost certainly stutter, take
 **Where to find a setup guide?**
 To comply with GitHub guidelines, we do not list specific addon names or direct links here. You can find a complete community guide on how to set up the app, link debrid services, and install recommended addons here:
 
-👉 **[Complete Community Setup Guide HERE](VLOŽ_ODKAZ_NA_RENTRY_NEBO_JINAM)**
+👉 **[Complete Community Setup Guide HERE](https://rentry.co/4mmr8vxy)**
 
 ## Privacy
 Lumen has no accounts and its interface layer sends no analytics events. It does make network requests to what you use: addon servers you install, image servers for posters / backdrops / logos, and the public metadata service used for descriptions. The bundled application core may contact its default catalog services. Your library, settings and addon URLs are stored locally in `%LOCALAPPDATA%\StremioMod`.
