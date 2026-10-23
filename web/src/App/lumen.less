@@ -739,10 +739,10 @@ html[data-density='l'] [class*='title-overlay-layer'] {
     font-size: 1.05rem;
     font-weight: 600;
     background: linear-gradient(135deg, rgb(10, 132, 255), rgb(120, 90, 255));
-    box-shadow: 0 0.4rem 1.4rem rgba(10, 132, 255, 0.35);
-    transition: transform 140ms ease, box-shadow 140ms ease;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    transition: filter 140ms ease;
 
-    &:hover { background: linear-gradient(135deg, rgb(40, 150, 255), rgb(140, 110, 255)); transform: translateY(-1px); box-shadow: 0 0.5rem 1.8rem rgba(10, 132, 255, 0.5); }
+    &:hover { background: linear-gradient(135deg, rgb(10, 132, 255), rgb(120, 90, 255)); filter: brightness(1.15); }
 }
 
 .lumen-help .lumen-help-link-static { background-color: rgba(255, 255, 255, 0.12); cursor: default; }
