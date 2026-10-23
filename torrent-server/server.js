@@ -8,6 +8,10 @@ import WebTorrent from 'webtorrent';
 
 const PORT = Number(process.env.LUMEN_PORT || 11470);
 const ALLOWED_ORIGIN = 'https://lumen.localhost:11470';
+// Na macOS servíruje rozhraní přímo tento server (LUMEN_WEB_DIR), stránka je pak na stejném původu jako server.
+const WEB_DIR = process.env.LUMEN_WEB_DIR ? path.resolve(process.env.LUMEN_WEB_DIR) : '';
+const ALLOWED_ORIGINS = new Set([ALLOWED_ORIGIN, `http://127.0.0.1:${Number(process.env.LUMEN_PORT || 11470)}`]);
+const STATIC_MIME = { html: 'text/html; charset=utf-8', js: 'text/javascript; charset=utf-8', mjs: 'text/javascript; charset=utf-8', css: 'text/css; charset=utf-8', json: 'application/json', svg: 'image/svg+xml', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', ico: 'image/x-icon', woff: 'font/woff', woff2: 'font/woff2', ttf: 'font/ttf', otf: 'font/otf', wasm: 'application/wasm', map: 'application/json', txt: 'text/plain; charset=utf-8', webmanifest: 'application/manifest+json' };
 const DIR = process.env.LUMEN_TORRENT_DIR || path.join(os.tmpdir(), 'lumen-torrents');
 const MAX_ACTIVE = 1;               // only one torrent at a time (the one being watched); older ones are removed so they do not share bandwidth
 const VIDEO = /\.(mkv|mp4|avi|mov|m4v|webm|ts|m2ts|wmv|flv)$/i;
@@ -156,11 +160,11 @@ const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, 'http://127.0.0.1');
   const p = u.pathname;
   const origin = req.headers.origin;
-  const cors = origin === ALLOWED_ORIGIN
+  const cors = ALLOWED_ORIGINS.has(origin)
     ? { 'Access-Control-Allow-Origin': origin, Vary: 'Origin', 'Access-Control-Allow-Methods': 'GET, POST, HEAD, OPTIONS', 'Access-Control-Allow-Headers': '*', 'Access-Control-Allow-Private-Network': 'true', 'Access-Control-Expose-Headers': 'Content-Range, Accept-Ranges, Content-Length' }
     : {};
   // Other web pages must not read or drive this server.
-  if (origin && origin !== ALLOWED_ORIGIN) return send(res, 403, { error: 'forbidden origin' });
+  if (origin && !ALLOWED_ORIGINS.has(origin)) return send(res, 403, { error: 'forbidden origin' });
   log(req.method, req.url.slice(0, 200), 'range=' + (req.headers.range || '-'));
   try {
     if (req.method === 'OPTIONS') { res.writeHead(204, cors); return res.end(); }
@@ -191,6 +195,16 @@ const server = http.createServer(async (req, res) => {
       const idx = m[2] === undefined || m[2] === '' ? -1 : Number(m[2]);
       const file = pickFile(t, idx, u.searchParams.get('filename') || '');
       return streamFile(req, res, file, cors);
+    }
+    if (WEB_DIR && (req.method === 'GET' || req.method === 'HEAD')) {
+      let rel = decodeURIComponent(p);
+      if (rel.endsWith('/')) rel += 'index.html';
+      const file = path.resolve(WEB_DIR, '.' + rel);
+      if ((file === WEB_DIR || file.startsWith(WEB_DIR + path.sep)) && fs.existsSync(file) && fs.statSync(file).isFile()) {
+        const data = fs.readFileSync(file);
+        res.writeHead(200, { 'Content-Type': STATIC_MIME[file.split('.').pop().toLowerCase()] || 'application/octet-stream', 'Content-Length': data.length, 'Cache-Control': 'no-cache', ...cors });
+        return res.end(req.method === 'HEAD' ? undefined : data);
+      }
     }
     send(res, 404, { error: 'not found' }, cors);
   } catch (e) {
