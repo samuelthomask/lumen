@@ -100,6 +100,7 @@ final class Player {
         opt("input-default-bindings", "no")
         opt("input-vo-keyboard", "no")
         opt("terminal", "no")
+        opt("volume-max", "200")   // posuvník hlasitosti jde do 200 %, výchozí strop mpv je 130
         opt("keep-open", "no")
         opt("force-window", "yes")
         opt("vo", env["LUMEN_VO"] ?? "gpu-next")

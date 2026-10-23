@@ -748,6 +748,7 @@ static bool initMpv() {
     mpv_set_option_string(g_mpv, "gpu-context", "d3d11");
     mpv_set_option_string(g_mpv, "hwdec", "auto");
     mpv_set_option_string(g_mpv, "target-colorspace-hint", "yes");   // HDR passthrough, když je displej v HDR
+    mpv_set_option_string(g_mpv, "volume-max", "200");   // posuvník hlasitosti jde do 200 %, výchozí strop mpv je 130
     mpv_set_option_string(g_mpv, "keep-open", "no");
     // Synchronizace obrazu podle displeje (jako madVR), ne podle zvuku: plynulý rytmus 24p na 144 Hz.
     mpv_set_option_string(g_mpv, "video-sync", "display-resample");
