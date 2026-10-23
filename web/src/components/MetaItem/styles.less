@@ -113,6 +113,14 @@
         }
     }
 
+    // Při stisku křížku se karta nesmí zmenšit: u velké dlaždice (jediné „Pokračovat ve sledování“) by se roh s křížkem
+    // posunul pryč od kurzoru, uvolnění tlačítka by už nebylo na křížku a místo smazání by se karta otevřela.
+    &:active:not(:global(.active)):has(.dismiss-icon-layer:active) {
+        .poster-container {
+            scale: none;
+        }
+    }
+
     .poster-container {
         position: relative;
         z-index: 0;
