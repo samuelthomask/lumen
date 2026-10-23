@@ -160,13 +160,14 @@
             z-index: 6; // nad přeryvem s logem a gradientem (title-overlay-layer), jinak by křížek nešel kliknout
             cursor: pointer;
             position: absolute;
-            top: 0.5rem;
-            left: 0.5rem;
+            // velká klikací plocha (3rem), viditelný je jen menší kruh uprostřed
+            top: 0;
+            left: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 1.5rem;
-            width: 1.5rem;
+            height: 3.2rem;
+            width: 3.2rem;
             border-radius: 100%;
             opacity: 0;
             pointer-events: none;
@@ -175,19 +176,23 @@
             .dismiss-icon {
                 z-index: 1;
                 position: relative;
-                height: 1.25rem;
-                width: 1.25rem;
+                height: 1.5rem;
+                width: 1.5rem;
                 color: var(--primary-foreground-color);
-                opacity: 0.8;
+                opacity: 0.9;
             }
+
+            &:hover .dismiss-icon-backdrop { opacity: 0.9; }
 
             .dismiss-icon-backdrop {
                 z-index: 0;
                 position: absolute;
-                top: 0;
-                bottom: 0;
-                left: 0;
-                right: 0;
+                top: 0.5rem;
+                bottom: 0.5rem;
+                left: 0.5rem;
+                right: 0.5rem;
+                border-radius: 100%;
+                transition: opacity 0.1s ease-in;
                 background-color: var(--primary-background-color);
                 opacity: 0.6;
             }
