@@ -621,8 +621,11 @@ static void overlayShow() {
     }
 }
 
+// Externí titulky (z addonu) kreslí webová vrstva, ne mpv; dokud je některé zobrazené, vrstvu neskrýváme (jinak by zmizely).
+static bool g_keepOverlay = false;
+
 static void overlayCheckIdle() {
-    if (g_overlayHidden || !g_fullscreen || !g_controller) return;
+    if (g_overlayHidden || g_keepOverlay || !g_fullscreen || !g_controller) return;
     if (GetTickCount64() - g_lastActivity < 3500) return;
     char* p = mpv_get_property_string(g_mpv, "pause");
     char* t = mpv_get_property_string(g_mpv, "time-pos");
@@ -771,7 +774,7 @@ static bool initMpv() {
 #pragma comment(lib, "urlmon.lib")
 #pragma comment(lib, "bcrypt.lib")
 
-static const char* LUMEN_VERSION = "1.2.7";   // držet shodně s installer\setup.cpp a setup.rc
+static const char* LUMEN_VERSION = "1.2.8";   // držet shodně s installer\setup.cpp a setup.rc
 static std::atomic<bool> g_updating{false};
 static std::wstring exeDir();
 
@@ -923,6 +926,9 @@ static void handleWebMessage(const std::string& text) {
         mpv_observe_property(g_mpv, 0, arg1->s.c_str(), MPV_FORMAT_NODE);
     } else if (method == "win-set-visibility" && arg1 && arg1->type == Json::Obj) {
         if (const Json* fs = arg1->get("fullscreen")) if (fs->type == Json::Bool) setFullscreen(fs->b);
+    } else if (method == "lumen-keep-overlay" && arg1 && arg1->type == Json::Bool) {
+        g_keepOverlay = arg1->b;
+        if (g_keepOverlay) overlayShow();
     } else if (method == "lumen-update" && args->a.size() > 2 && arg1 && arg1->type == Json::Str && args->a[2].type == Json::Str) {
         const std::string url = arg1->s, sha = args->a[2].s;
         if (!validUpdateRequest(url, sha)) updateStatus("error", 0, "invalid");

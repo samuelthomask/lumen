@@ -66,6 +66,12 @@
         }
     }
 
+    // záloha: křížek se zpřístupní i čistě podle :hover, kdyby třída hovered nestihla naskočit
+    &:hover .poster-container .dismiss-icon-layer {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
     .meta-item-link {
         display: block;
         overflow: visible;
@@ -151,7 +157,8 @@
         }
 
         .dismiss-icon-layer {
-            z-index: -2;
+            z-index: 6; // nad přeryvem s logem a gradientem (title-overlay-layer), jinak by křížek nešel kliknout
+            cursor: pointer;
             position: absolute;
             top: 0.5rem;
             left: 0.5rem;

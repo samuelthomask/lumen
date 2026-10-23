@@ -681,6 +681,13 @@ const Player = () => {
         };
     }, []);
 
+    // Externí titulky kreslí webová vrstva; obal ji při nečinnosti ve fullscreenu skrývá, takže by zmizely (Lumen).
+    React.useEffect(() => {
+        if (!platform.shell.active) return;
+        platform.shell.send('lumen-keep-overlay', selectedExtraSubtitleTrackId !== null && selectedExtraSubtitleTrackId !== undefined);
+        return () => platform.shell.send('lumen-keep-overlay', false);
+    }, [platform.shell.active, selectedExtraSubtitleTrackId]);
+
     React.useEffect(() => {
         if (settings.pauseOnMinimize && (platform.shell.state.windowClosed || platform.shell.state.windowHidden)) {
             onPauseRequested();
