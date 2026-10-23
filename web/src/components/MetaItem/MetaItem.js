@@ -33,8 +33,16 @@ const MetaItem = React.memo(({ className, type, name, poster, posterShape, poste
     const artwork = poster && typeof poster === 'object' ? poster : { src: poster, shape: posterShape, changeCursor: posterChangeCursor };
     const showOverlay = artwork.shape === 'landscape' && typeof name === 'string' && name.length > 0;
     const logoSrc = React.useMemo(() => showOverlay ? logoFor(artwork.src) : null, [showOverlay, artwork.src]);
-    const [logoState, setLogoState] = React.useState('loading');
-    React.useEffect(() => setLogoState('loading'), [logoSrc]);
+    // stav logu patří ke konkrétní adrese: žádný reset v efektu, který by přepsal rychlé načtení/selhání (dlaždice zůstaly prázdné)
+    const [logoResult, setLogoResult] = React.useState({ src: null, state: 'loading' });
+    const logoState = logoResult.src === logoSrc ? logoResult.state : 'loading';
+    const setLogoState = React.useCallback((state) => setLogoResult({ src: logoSrc, state }), [logoSrc]);
+    // pomalé nebo zaseknuté načítání loga nesmí nechat dlaždici bez názvu
+    React.useEffect(() => {
+        if (logoSrc === null) return;
+        const timer = setTimeout(() => setLogoResult((r) => r.src === logoSrc && r.state === 'loaded' ? r : { src: logoSrc, state: 'failed' }), 5000);
+        return () => clearTimeout(timer);
+    }, [logoSrc]);
     const logoFailed = logoSrc === null || logoState === 'failed';
     const { navigateWithOrigin } = useNavigateWithOrigin();
     const [menuOpen, onMenuOpen, onMenuClose] = useBinaryState(false);
@@ -136,6 +144,7 @@ const MetaItem = React.memo(({ className, type, name, poster, posterShape, poste
                                 {
                                     logoSrc !== null && !logoFailed ?
                                         <img
+                                            ref={(img) => { if (img && img.complete && logoState === 'loading') setLogoState(img.naturalWidth > 0 ? 'loaded' : 'failed'); }}
                                             className={classnames(styles['title-logo'], { [styles['loaded']]: logoState === 'loaded' })}
                                             src={logoSrc}
                                             alt={name}
