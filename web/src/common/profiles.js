@@ -6,7 +6,8 @@
 const META_KEY = 'lumen.profiles';
 const DATA_PREFIX = 'lumen.pdata.';
 const PENDING_KEY = 'lumen.pendingSwitch';
-const PICKED_KEY = 'lumen.profilePicked';   // sessionStorage: profil už byl při tomto spuštění vybrán
+const PENDING_REPLACE_KEY = 'lumen.pendingReplace'; // data z účtu čekající na použití při startu
+const PICKED_KEY = 'lumen.profilePicked'; // sessionStorage: profil už byl při tomto spuštění vybrán
 const FORMAT = 'lumen-profiles';
 
 const COLORS = ['#0a84ff', '#bf5af2', '#ff375f', '#ff9f0a', '#30d158', '#64d2ff', '#ffd60a', '#ac8e68'];
@@ -77,6 +78,11 @@ const init = () => {
             const id = newId();
             meta = { activeId: id, profiles: [{ id, name: 'Profil 1', color: COLORS[0] }] };
             writeMeta(meta);
+        }
+        const replace = store().getItem(PENDING_REPLACE_KEY);
+        if (replace) {
+            store().removeItem(PENDING_REPLACE_KEY);
+            try { replaceAllLocal(JSON.parse(replace)); } catch (_) { /* poškozená data: zůstanou stávající profily */ }
         }
         const pending = store().getItem(PENDING_KEY);
         if (pending) {
@@ -188,13 +194,18 @@ const deriveKey = async (password, salt) => {
     );
 };
 
-// Obsah souboru: adresy addonů mohou obsahovat osobní klíče, proto je lze zašifrovat heslem.
-const exportProfiles = async (password) => {
+// Všechny profily včetně dat (pro export i synchronizaci s účtem).
+const collectAll = () => {
     const meta = getMeta();
-    const profiles = meta.profiles.map((profile) => ({
+    return meta.profiles.map((profile) => ({
         ...profile,
         data: profile.id === meta.activeId ? snapshot() : readData(profile.id)
     }));
+};
+
+// Obsah souboru: adresy addonů mohou obsahovat osobní klíče, proto je lze zašifrovat heslem.
+const exportProfiles = async (password) => {
+    const profiles = collectAll();
     const payload = JSON.stringify(profiles);
     if (!password) return JSON.stringify({ format: FORMAT, version: 1, encrypted: false, profiles });
     const salt = window.crypto.getRandomValues(new Uint8Array(16));
@@ -238,6 +249,34 @@ const importProfiles = (profiles) => {
     return count;
 };
 
+// Nahradí všechny profily v zařízení (data z účtu). Stejně jako přepnutí profilu se provede až po znovunačtení,
+// před startem jádra (viz init).
+const replaceAllLocal = (items) => {
+    const meta = { activeId: null, profiles: [] };
+    const datas = {};
+    (Array.isArray(items) ? items : []).forEach((item) => {
+        if (!item || typeof item.name !== 'string' || typeof item.id !== 'string') return;
+        const profile = { id: item.id, name: item.name, color: COLORS.includes(item.color) ? item.color : COLORS[meta.profiles.length % COLORS.length] };
+        if (item.pin && item.pin.salt && item.pin.hash) profile.pin = { salt: String(item.pin.salt), hash: String(item.pin.hash) };
+        meta.profiles.push(profile);
+        const data = {};
+        Object.entries(item.data || {}).forEach(([key, value]) => { if (isOwned(key) && typeof value === 'string') data[key] = value; });
+        datas[profile.id] = data;
+    });
+    if (meta.profiles.length === 0) return;
+    getProfiles().forEach((profile) => store().removeItem(DATA_PREFIX + profile.id));
+    meta.activeId = meta.profiles[0].id;
+    meta.profiles.slice(1).forEach((profile) => writeData(profile.id, datas[profile.id]));
+    restore(datas[meta.activeId]);
+    writeMeta(meta);
+};
+
+const requestReplaceAll = (items) => {
+    store().setItem(PENDING_REPLACE_KEY, JSON.stringify(items));
+    clearPicked();
+    window.location.reload();
+};
+
 const saveFile = (text, filename) => {
     const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
     const link = document.createElement('a');
@@ -251,5 +290,6 @@ const saveFile = (text, filename) => {
 
 module.exports = {
     COLORS, init, getProfiles, getActive, switchLocal, requestSwitch, needsPicker, markPicked, clearPicked,
-    addProfile, updateProfile, removeProfile, checkPin, exportProfiles, parseExport, importProfiles, saveFile
+    addProfile, updateProfile, removeProfile, checkPin, exportProfiles, parseExport, importProfiles, saveFile,
+    collectAll, requestReplaceAll
 };

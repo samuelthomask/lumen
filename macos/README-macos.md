@@ -21,7 +21,7 @@ WEB_BUILD=/cesta/k/rozbalenemu/web-build bash make-app.sh     # bez WEB_BUILD se
 open dist/Lumen.app
 ```
 
-Skript postaví aplikaci, přibalí server a Node, ikonu a vytvoří `dist/Lumen.app` a `dist/Lumen-1.1.0.dmg`.
+Skript postaví aplikaci, přibalí server a Node, ikonu a vytvoří `dist/Lumen.app` a `dist/Lumen-1.2.0.dmg`.
 Aplikace se podepíše **ad-hoc** (zdarma, bez Apple účtu). Při prvním otevření Mac ukáže varování:
 pravé tlačítko na aplikaci → **Otevřít** → **Otevřít** (na novějších macOS: *Nastavení → Soukromí a zabezpečení → Přesto otevřít*).
 

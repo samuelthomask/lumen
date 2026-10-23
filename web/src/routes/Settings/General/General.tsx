@@ -6,6 +6,7 @@ import { useDiscord } from 'stremio/common';
 import { Section, Option, Link } from '../components';
 // @ts-ignore
 import ProfilesSection from './ProfilesSection';
+import AccountSection from './AccountSection';
 import styles from './General.less';
 
 type Props = {
@@ -43,14 +44,15 @@ const General = forwardRef<HTMLDivElement, Props>(({ profile }: Props, ref) => {
                 <div className={styles['lumen-about-name']}>Lumen</div>
                 <div className={styles['lumen-about-text']}>
                     {czech ?
-                        'Přehrávač a prohlížeč katalogů. Bez účtů: knihovna, pokračování ve sledování i nastavení zůstávají jen v tomto počítači.' :
-                        'A player and catalog browser. No accounts: your library, continue watching and settings stay on this computer only.'}
+                        'Přehrávač a prohlížeč katalogů. Účet není potřeba: bez něj knihovna, pokračování ve sledování i nastavení zůstávají jen v tomto počítači.' :
+                        'A player and catalog browser. No account needed: without one your library, continue watching and settings stay on this computer only.'}
                 </div>
             </div>
         </Section>
 
         <Section>
             <ProfilesSection />
+            <AccountSection />
         </Section>
 
         <Section>

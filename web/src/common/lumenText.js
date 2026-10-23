@@ -71,6 +71,75 @@ const DICT = {
     profileCancel: { cs: 'Zrušit', en: 'Cancel' },
     profileTransferHint: { cs: 'Chcete profily a rozkoukané filmy přenést na jiné zařízení? V Nastavení → Profily je exportujte do souboru .lumen, pošlete si ho a na novém zařízení importujte.', en: 'Want to move your profiles and what you were watching to another device? Export them to a .lumen file in Settings → Profiles, send it to yourself and import it on the new device.' },
     profileSwitchNote: { cs: 'Aplikace se při přepnutí načte znovu.', en: 'The app reloads when you switch.' },
+    // účet
+    accountSection: { cs: 'Účet', en: 'Account' },
+    accountIntro: {
+        cs: 'Volitelné. S účtem se profily, addony, knihovna, rozkoukané díly i nastavení samy synchronizují mezi zařízeními. Data se šifrují vaším heslem ještě v zařízení, správce serveru je přečíst nemůže. Bez účtu Lumen funguje stejně jako dosud.',
+        en: 'Optional. With an account your profiles, addons, library, continue watching and settings sync between devices automatically. Data is encrypted with your password on the device, the server admin cannot read it. Without an account Lumen works just as before.'
+    },
+    accountSignIn: { cs: 'Přihlásit se', en: 'Sign in' },
+    accountSignUp: { cs: 'Vytvořit účet', en: 'Create account' },
+    accountSignOut: { cs: 'Odhlásit se', en: 'Sign out' },
+    accountSignedAs: { cs: 'Přihlášeno jako', en: 'Signed in as' },
+    accountSyncNow: { cs: 'Synchronizovat teď', en: 'Sync now' },
+    accountSyncing: { cs: 'Synchronizuji…', en: 'Syncing…' },
+    accountLastSync: { cs: 'Naposledy synchronizováno', en: 'Last synced' },
+    accountDelete: { cs: 'Smazat účet', en: 'Delete account' },
+    accountPrivacy: { cs: 'Zásady ochrany soukromí', en: 'Privacy policy' },
+    accountEmail: { cs: 'E-mail', en: 'Email' },
+    accountPassword: { cs: 'Heslo (aspoň 8 znaků)', en: 'Password (at least 8 characters)' },
+    accountPasswordAgain: { cs: 'Heslo znovu', en: 'Password again' },
+    accountNewPassword: { cs: 'Nové heslo (aspoň 8 znaků)', en: 'New password (at least 8 characters)' },
+    accountForgot: { cs: 'Zapomenuté heslo', en: 'Forgot password' },
+    accountCode: { cs: 'Kód z e-mailu', en: 'Code from the email' },
+    accountCodeSent: {
+        cs: 'Poslali jsme vám e-mail s kódem. Opište ho sem (pokud nepřišel, podívejte se i do spamu).',
+        en: 'We sent you an email with a code. Enter it here (if it did not arrive, check your spam folder too).'
+    },
+    accountConfirmSent: {
+        cs: 'Poslali jsme vám e-mail s kódem pro potvrzení účtu. Opište ho sem (pokud nepřišel, podívejte se i do spamu).',
+        en: 'We sent you an email with a code to confirm your account. Enter it here (if it did not arrive, check your spam folder too).'
+    },
+    accountSendCode: { cs: 'Poslat kód', en: 'Send code' },
+    accountResetHint: {
+        cs: 'Pošleme vám kód pro nastavení nového hesla. Data v účtu jsou zašifrovaná starým heslem, proto se po změně nahradí daty z tohoto zařízení. Obnovu proto dělejte na zařízení, kde máte svá data.',
+        en: 'We will send you a code to set a new password. The data in your account is encrypted with the old password, so after the change it is replaced with the data from this device. Do the reset on a device that has your data.'
+    },
+    accountChoiceTitle: { cs: 'Účet už obsahuje data', en: 'The account already has data' },
+    accountChoiceText: {
+        cs: 'Chcete v tomto zařízení použít data z účtu (stávající profily v zařízení se nahradí), nebo naopak nahrát do účtu data z tohoto zařízení?',
+        en: 'Do you want to use the account data on this device (the profiles on this device will be replaced), or upload this device\'s data to the account instead?'
+    },
+    accountUseCloud: { cs: 'Použít data z účtu', en: 'Use account data' },
+    accountUseDevice: { cs: 'Nahrát z tohoto zařízení', en: 'Upload from this device' },
+    accountDeleteText: {
+        cs: 'Účet i všechna data v něm budou trvale smazána. Data v tomto zařízení zůstanou.',
+        en: 'The account and all its data will be permanently deleted. The data on this device stays.'
+    },
+    accountDeleteConfirm: { cs: 'Trvale smazat', en: 'Delete permanently' },
+    accountContinue: { cs: 'Pokračovat', en: 'Continue' },
+    accountCancel: { cs: 'Zrušit', en: 'Cancel' },
+    accountPasswordMismatch: { cs: 'Hesla se neshodují.', en: 'The passwords do not match.' },
+    accountPasswordShort: { cs: 'Heslo musí mít aspoň 8 znaků.', en: 'The password must have at least 8 characters.' },
+    accountForgetWarning: {
+        cs: 'Heslo si dobře zapamatujte: šifruje vaše data a nikdo jiný ho nezná.',
+        en: 'Remember your password well: it encrypts your data and nobody else knows it.'
+    },
+    accountErr_credentials: { cs: 'Špatný e-mail nebo heslo.', en: 'Wrong email or password.' },
+    accountErr_unconfirmed: { cs: 'E-mail ještě není potvrzený.', en: 'The email is not confirmed yet.' },
+    accountErr_exists: { cs: 'Účet s tímto e-mailem už existuje.', en: 'An account with this email already exists.' },
+    accountErr_code: { cs: 'Kód je špatný nebo už vypršel.', en: 'The code is wrong or has expired.' },
+    accountErr_weak: { cs: 'Heslo je příliš slabé.', en: 'The password is too weak.' },
+    accountErr_rate: { cs: 'Příliš mnoho pokusů, zkuste to za chvíli.', en: 'Too many attempts, try again later.' },
+    accountErr_network: { cs: 'Nepodařilo se spojit se serverem.', en: 'Could not reach the server.' },
+    accountErr_auth: { cs: 'Přihlášení vypršelo, přihlaste se znovu.', en: 'Your session expired, please sign in again.' },
+    accountErr_relogin: { cs: 'Heslo bylo změněno na jiném zařízení. Přihlaste se znovu.', en: 'The password was changed on another device. Please sign in again.' },
+    accountErr_decrypt: { cs: 'Data v účtu nejde odemknout tímto heslem.', en: 'The account data cannot be unlocked with this password.' },
+    accountErr_server: { cs: 'Server vrátil chybu, zkuste to znovu.', en: 'The server returned an error, please try again.' },
+    accountPrivacyText: {
+        cs: 'Účet je dobrovolný. Ukládá se: váš e-mail (jen kvůli přihlášení a obnově hesla), čas posledního přihlášení a zašifrovaný balík dat (profily, addony, knihovna, rozkoukané díly, nastavení). Balík se šifruje v zařízení klíčem z vašeho hesla (AES-256); heslo ani klíč se nikam neposílají, správce serveru proto obsah nevidí. Data jsou uložena u služby Supabase. Nic se neprodává ani nesdílí, žádná reklama ani sledování. Tlačítkem Smazat účet se účet i data trvale odstraní.',
+        en: 'The account is optional. Stored: your email (only for sign-in and password reset), the time of your last sign-in and an encrypted bundle (profiles, addons, library, continue watching, settings). The bundle is encrypted on your device with a key derived from your password (AES-256); neither the password nor the key is ever sent, so the server admin cannot see the contents. Data is stored with Supabase. Nothing is sold or shared, no ads or tracking. Delete account permanently removes the account and its data.'
+    },
     // nápověda
     helpTab: { cs: 'Nápověda', en: 'Help' }
 };

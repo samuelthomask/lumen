@@ -23,6 +23,7 @@ const { default: WebUpdateScreen } = require('./App/WebUpdateScreen');
 const { CoreProvider } = require('./core');
 const { FileDropProvider, PlatformProvider } = require('./common');
 const profiles = require('./common/profiles');
+const cloud = require('./common/cloud');
 const { ProfilePicker } = require('./App/ProfilePicker/ProfilePicker');
 
 // Lumen: názvy "Stremio" v překladech nahradit názvem aplikace (název a značka Stremia nepoužíváme)
@@ -53,6 +54,7 @@ const appInfo = {
 
 // Lumen: profily. Před spuštěním jádra se případně přepne profil a při více profilech se zobrazí jejich výběr.
 profiles.init();
+cloud.start();
 try {
     const stored = JSON.parse(window.localStorage.getItem('profile'));
     const lang = stored && stored.settings && stored.settings.interfaceLanguage;

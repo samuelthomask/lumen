@@ -220,6 +220,9 @@ module.exports = (env, argv) => ({
             SENTRY_DSN: null,
             LUMEN_EDITION: 'public',
             LUMEN_REPO_URL: '',
+            // účty Lumenu (veřejný klíč; data chrání pravidla v databázi, viz cloud/supabase.sql)
+            LUMEN_SUPABASE_URL: 'https://wvyvukhreavmgsvwgqeu.supabase.co',
+            LUMEN_SUPABASE_KEY: 'sb_publishable_005x14TSDk2o-A9Wowee0w_EKbaPaJ0',
             ...env,
             SERVICE_WORKER_DISABLED: false,
             DEBUG: argv.mode !== 'production',
