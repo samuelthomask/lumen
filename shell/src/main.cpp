@@ -771,7 +771,7 @@ static bool initMpv() {
 #pragma comment(lib, "urlmon.lib")
 #pragma comment(lib, "bcrypt.lib")
 
-static const char* LUMEN_VERSION = "1.2.5";   // držet shodně s installer\setup.cpp a setup.rc
+static const char* LUMEN_VERSION = "1.2.6";   // držet shodně s installer\setup.cpp a setup.rc
 static std::atomic<bool> g_updating{false};
 static std::wstring exeDir();
 

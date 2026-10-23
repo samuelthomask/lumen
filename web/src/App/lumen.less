@@ -734,4 +734,15 @@ html[data-density='l'] [class*='title-overlay-layer'] {
     code { padding: 0.1rem 0.4rem; border-radius: 0.4rem; background-color: rgba(255, 255, 255, 0.1); font-family: Consolas, monospace; font-size: 0.9em; user-select: text; }
 }
 
+.lumen-help .lumen-help-link-guide {
+    padding: 0.7rem 1.6rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, rgb(10, 132, 255), rgb(120, 90, 255));
+    box-shadow: 0 0.4rem 1.4rem rgba(10, 132, 255, 0.35);
+    transition: transform 140ms ease, box-shadow 140ms ease;
+
+    &:hover { background: linear-gradient(135deg, rgb(40, 150, 255), rgb(140, 110, 255)); transform: translateY(-1px); box-shadow: 0 0.5rem 1.8rem rgba(10, 132, 255, 0.5); }
+}
+
 .lumen-help .lumen-help-link-static { background-color: rgba(255, 255, 255, 0.12); cursor: default; }

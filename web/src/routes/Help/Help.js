@@ -15,9 +15,8 @@ if (process.env.LUMEN_EDITION === 'personal') {
 const REPO_URL = process.env.LUMEN_REPO_URL;
 const ADDON_SDK_URL = 'https://github.com/Stremio/stremio-addon-sdk';
 
-// Zástupné položky doporučení: autor projektu je přepíše ve vlastním repozitáři (viz docs/ADDONS.md).
-const RECOMMENDED_PLACEHOLDERS = ['DOPLNEK_1', 'DOPLNEK_2', 'SLUZBA_1', 'SLUZBA_2'];
-const RECOMMENDED_URL = REPO_URL ? `${REPO_URL}/blob/main/docs/ADDONS.md` : null;
+// Komunitní průvodce nastavením (stejný odkaz jako v README); konkrétní názvy addonů se tu neuvádějí.
+const GUIDE_URL = 'https://rentry.co/4mmr8vxy';
 
 const ProfilesHelp = require('./ProfilesHelp');
 
@@ -41,7 +40,8 @@ const TEXT = {
         debridTitle: 'Co je debrid?',
         debridText: 'Některé addony umí použít placenou službu typu „debrid“. Ta zdroj stáhne na svých rychlých serverech a pošle vám ho jako obyčejné video, takže se film spustí za pár vteřin, nezasekává se a zvládne i velké soubory. Klíč ke službě se zadává na stránce konkrétního addonu, ne v Lumenu. Jestli službu potřebujete, záleží na addonu.',
         recTitle: 'Doporučené addony a služby',
-        recText: 'Seznam doporučení vede autor projektu v dokumentaci na GitHubu (zatím zástupné názvy):',
+        recText: 'Komunitní průvodce vysvětlí, jak Lumen nastavit, propojit debrid službu a nainstalovat doporučené addony. Konkrétní názvy zde z principu neuvádíme.',
+        guide: '📖 Kompletní průvodce nastavením',
         moreTitle: 'Víc informací',
         moreText: 'Podrobnější popis funkcí, instalace a dokumentace je v projektu na GitHubu.',
         sdk: 'Jak addony fungují (technická dokumentace)',
@@ -64,7 +64,8 @@ const TEXT = {
         debridTitle: 'What is debrid?',
         debridText: 'Some addons can use a paid "debrid" service. It downloads the source on its fast servers and sends it to you as an ordinary video, so the movie starts within seconds, does not stall and handles large files. The service key is entered on the page of the specific addon, not in Lumen. Whether you need such a service depends on the addon.',
         recTitle: 'Recommended addons and services',
-        recText: 'The project author maintains the list of recommendations in the GitHub documentation (placeholder names for now):',
+        recText: 'The community guide explains how to set Lumen up, link a debrid service and install recommended addons. We do not list specific names here on principle.',
+        guide: '📖 Complete setup guide',
         moreTitle: 'More information',
         moreText: 'A detailed description of features, installation and documentation is in the GitHub project.',
         sdk: 'How addons work (technical documentation)',
@@ -107,11 +108,7 @@ const Help = () => {
                     <h2>{tx.recTitle}</h2>
                     <p>{tx.recText}</p>
                     <div className={'lumen-help-links'}>
-                        {RECOMMENDED_PLACEHOLDERS.map((name) => RECOMMENDED_URL ?
-                            <a key={name} className={'lumen-help-link'} href={RECOMMENDED_URL} target={'_blank'} rel={'noopener noreferrer'}>{name}</a>
-                            :
-                            <span key={name} className={'lumen-help-link lumen-help-link-static'}>{name}</span>
-                        )}
+                        <a className={'lumen-help-link lumen-help-link-guide'} href={GUIDE_URL} target={'_blank'} rel={'noopener noreferrer'}>{tx.guide}</a>
                     </div>
                 </section>
 
