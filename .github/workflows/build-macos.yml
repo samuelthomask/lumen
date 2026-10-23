@@ -16,6 +16,10 @@ permissions:
 jobs:
   dmg:
     runs-on: macos-14
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: 1
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
+      HOMEBREW_NO_ENV_HINTS: 1
     steps:
       - uses: actions/checkout@v4
 
@@ -23,19 +27,26 @@ jobs:
         with:
           node-version: 22
 
-      - name: Nástroje
+      - name: pnpm
         run: |
           npm install -g pnpm@11.8.0
-          brew install mpv dylibbundler
+          pnpm config set store-dir "$HOME/.pnpm-store"
 
-      - name: Web (veřejná edice)
-        working-directory: web
+      - uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-${{ hashFiles('web/pnpm-lock.yaml') }}
+          restore-keys: pnpm-
+
+      # mpv z Homebrew se instaluje souběžně se stavbou webu (šetří čas)
+      - name: Web (veřejná edice) a mpv souběžně
         env:
           LUMEN_EDITION: public
           LUMEN_REPO_URL: https://github.com/${{ github.repository }}
         run: |
-          pnpm install --frozen-lockfile
-          pnpm build
+          brew install mpv dylibbundler & BREW_PID=$!
+          (cd web && pnpm install --frozen-lockfile && pnpm build)
+          wait $BREW_PID
 
       - name: Aplikace a dmg
         working-directory: macos
