@@ -146,6 +146,8 @@ const DICT = {
     lumenUpdate: { cs: 'Aktualizovat', en: 'Update' },
     lumenInstalling: { cs: 'Stahuji a instaluji aktualizaci, Lumen se za chvíli restartuje…', en: 'Installing the update, Lumen will restart shortly…' },
     lumenWhatsNew: { cs: 'Zobrazit', en: 'View' },
+    lumenDownloading: { cs: 'Stahuji verzi', en: 'Downloading version' },
+    lumenUpdateFailed: { cs: 'Aktualizace se nepovedla. Stáhněte novou verzi ručně.', en: 'The update failed. Please download the new version manually.' },
     reloadUi: { cs: 'Načíst znovu', en: 'Reload' },
     // nápověda
     helpTab: { cs: 'Nápověda', en: 'Help' }

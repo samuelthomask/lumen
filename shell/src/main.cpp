@@ -8,6 +8,8 @@
 #include <shellapi.h>
 #include <shlobj.h>
 #include <shlwapi.h>
+#include <urlmon.h>
+#include <bcrypt.h>
 #include <dcomp.h>
 #include <wrl.h>
 #include <WebView2.h>
@@ -762,6 +764,115 @@ static bool initMpv() {
     return true;
 }
 
+// ---------- Aktualizace z aplikace ----------
+// Web zjistí novou verzi na GitHubu a pošle adresu instalátoru a jeho SHA-256. Obal ho stáhne, ověří otisk, spustí
+// potichu (/S /UPDATE) do složky, ze které běží, a skončí; instalátor přepíše soubory a Lumen znovu spustí.
+
+#pragma comment(lib, "urlmon.lib")
+#pragma comment(lib, "bcrypt.lib")
+
+static const char* LUMEN_VERSION = "1.2.4";   // držet shodně s installer\setup.cpp a setup.rc
+static std::atomic<bool> g_updating{false};
+static std::wstring exeDir();
+
+static void updateStatus(const char* state, int percent = 0, const char* detail = "") {
+    std::string d = "{\"state\":";
+    jsonEscape(d, state);
+    d += ",\"percent\":" + std::to_string(percent) + ",\"detail\":";
+    jsonEscape(d, detail);
+    d += "}";
+    postSignal("lumen-update-status", d);
+}
+
+static bool fileSha256(const std::wstring& path, std::string& hex) {
+    BCRYPT_ALG_HANDLE alg = nullptr;
+    if (BCryptOpenAlgorithmProvider(&alg, BCRYPT_SHA256_ALGORITHM, nullptr, 0) < 0) return false;
+    bool ok = false;
+    BCRYPT_HASH_HANDLE h = nullptr;
+    if (BCryptCreateHash(alg, &h, nullptr, 0, nullptr, 0, 0) >= 0) {
+        HANDLE f = CreateFileW(path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+        if (f != INVALID_HANDLE_VALUE) {
+            std::vector<unsigned char> buf(1 << 20);
+            DWORD n = 0;
+            ok = true;
+            while (ReadFile(f, buf.data(), (DWORD)buf.size(), &n, nullptr) && n)
+                if (BCryptHashData(h, buf.data(), n, 0) < 0) { ok = false; break; }
+            CloseHandle(f);
+            unsigned char out[32];
+            if (ok && BCryptFinishHash(h, out, sizeof out, 0) >= 0) {
+                hex.clear();
+                for (unsigned char b : out) { char t[3]; snprintf(t, sizeof t, "%02x", b); hex += t; }
+            } else ok = false;
+        }
+        BCryptDestroyHash(h);
+    }
+    BCryptCloseAlgorithmProvider(alg, 0);
+    return ok;
+}
+
+struct DownloadProgress : IBindStatusCallback {
+    int last = -1;
+    STDMETHODIMP QueryInterface(REFIID r, void** p) override {
+        if (r == IID_IUnknown || r == IID_IBindStatusCallback) { *p = this; return S_OK; }
+        *p = nullptr; return E_NOINTERFACE;
+    }
+    STDMETHODIMP_(ULONG) AddRef() override { return 1; }
+    STDMETHODIMP_(ULONG) Release() override { return 1; }
+    STDMETHODIMP OnStartBinding(DWORD, IBinding*) override { return S_OK; }
+    STDMETHODIMP GetPriority(LONG*) override { return E_NOTIMPL; }
+    STDMETHODIMP OnLowResource(DWORD) override { return S_OK; }
+    STDMETHODIMP OnProgress(ULONG now, ULONG max, ULONG, LPCWSTR) override {
+        if (max) { int p = (int)((unsigned long long)now * 100 / max); if (p != last) { last = p; updateStatus("downloading", p); } }
+        return S_OK;
+    }
+    STDMETHODIMP OnStopBinding(HRESULT, LPCWSTR) override { return S_OK; }
+    STDMETHODIMP GetBindInfo(DWORD*, BINDINFO*) override { return S_OK; }
+    STDMETHODIMP OnDataAvailable(DWORD, DWORD, FORMATETC*, STGMEDIUM*) override { return S_OK; }
+    STDMETHODIMP OnObjectAvailable(REFIID, IUnknown*) override { return S_OK; }
+};
+
+static void updateWorker(std::string url, std::string sha) {
+    auto fail = [](const char* why) { logf("UPDATE failed: %s", why); updateStatus("error", 0, why); g_updating = false; };
+    std::wstring dir = exeDir();
+    size_t slash = dir.find_last_of(L'\\');
+    if (_wcsicmp((slash == std::wstring::npos ? dir : dir.substr(slash + 1)).c_str(), L"Lumen") != 0) return fail("notinstalled");
+
+    wchar_t tmp[MAX_PATH];
+    GetTempPathW(MAX_PATH, tmp);
+    std::wstring file = std::wstring(tmp) + L"Lumen-Setup-update.exe";
+    DeleteFileW(file.c_str());
+    updateStatus("downloading", 0);
+    DownloadProgress cb;
+    if (URLDownloadToFileW(nullptr, widen(url).c_str(), file.c_str(), 0, &cb) != S_OK) return fail("download");
+    std::string got;
+    if (!fileSha256(file, got) || got != sha) { DeleteFileW(file.c_str()); return fail("checksum"); }
+
+    updateStatus("installing");
+    std::wstring cmd = L"\"" + file + L"\" /S /UPDATE /D=\"" + dir + L"\"";
+    std::vector<wchar_t> buf(cmd.begin(), cmd.end());
+    buf.push_back(0);
+    STARTUPINFOW si{}; si.cb = sizeof si;
+    PROCESS_INFORMATION pi{};
+    if (!CreateProcessW(nullptr, buf.data(), nullptr, nullptr, FALSE, DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP, nullptr, nullptr, &si, &pi))
+        return fail("launch");
+    CloseHandle(pi.hThread);
+    CloseHandle(pi.hProcess);
+    logf("UPDATE installer started, closing");
+    PostMessageW(g_main, WM_CLOSE, 0, 0);
+}
+
+static bool validUpdateRequest(const std::string& url, const std::string& sha) {
+    static const std::string prefix = "https://github.com/samuelthomask/Lumen/releases/download/";
+    static const std::string suffix = "/Lumen-Setup.exe";
+    if (url.size() <= prefix.size() + suffix.size()) return false;
+    if (_strnicmp(url.c_str(), prefix.c_str(), prefix.size()) != 0) return false;   // GitHub vrací adresy s názvem repozitáře malými písmeny
+    if (url.compare(url.size() - suffix.size(), suffix.size(), suffix) != 0) return false;
+    if (url.find_first_of("\"\\ <>|^&%") != std::string::npos) return false;
+    if (sha.size() != 64) return false;
+    for (char c : sha) if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'))) return false;
+    return true;
+}
+
 // ---------- Příkazy z webu ----------
 
 static void handleWebMessage(const std::string& text) {
@@ -777,7 +888,7 @@ static void handleWebMessage(const std::string& text) {
             std::string s = "[0,"; jsonEscape(s, name); s += ",0,"; jsonEscape(s, value); s += ']'; return s;
         };
         std::string init = "{\"id\":0,\"type\":3,\"data\":{\"transport\":{\"properties\":[";
-        init += prop("shellVersion", "stremio-mod 0.1.0") + ',';
+        init += prop("shellVersion", (std::string("lumen ") + LUMEN_VERSION).c_str()) + ',';
         init += prop("streamingServerUrl", "http://127.0.0.1:11470/") + ',';
         init += prop("gpuVideoProcessing", "false") + ',';
         init += prop("nativeAssSubtitles", "false") + ',';
@@ -812,6 +923,10 @@ static void handleWebMessage(const std::string& text) {
         mpv_observe_property(g_mpv, 0, arg1->s.c_str(), MPV_FORMAT_NODE);
     } else if (method == "win-set-visibility" && arg1 && arg1->type == Json::Obj) {
         if (const Json* fs = arg1->get("fullscreen")) if (fs->type == Json::Bool) setFullscreen(fs->b);
+    } else if (method == "lumen-update" && args->a.size() > 2 && arg1 && arg1->type == Json::Str && args->a[2].type == Json::Str) {
+        const std::string url = arg1->s, sha = args->a[2].s;
+        if (!validUpdateRequest(url, sha)) updateStatus("error", 0, "invalid");
+        else if (!g_updating.exchange(true)) std::thread(updateWorker, url, sha).detach();
     } else if (method == "quit") {
         PostMessageW(g_main, WM_CLOSE, 0, 0);
     }

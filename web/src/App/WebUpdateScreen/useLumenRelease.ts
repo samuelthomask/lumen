@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 const { LUMEN_VERSION, LUMEN_REPO } = require('stremio/common/lumenVersion');
 
-type Release = { version: string, pageUrl: string, dmgUrl: string | null };
+type Platform = 'mac' | 'win' | null;
+type Release = { version: string, pageUrl: string, dmgUrl: string | null, exeUrl: string | null, exeSha: string | null };
 
 const CHECK_EVERY = 6 * 60 * 60 * 1000;
 const DISMISS_KEY = 'lumen.updateDismissed';
@@ -15,7 +16,23 @@ const isNewer = (a: string, b: string) => {
     return false;
 };
 
-const useLumenRelease = () => {
+// Verze pro každý systém vychází zvlášť (macOS .dmg, Windows Lumen-Setup.exe), proto se hledá nejnovější vydání,
+// které má soubor pro tento systém. Instalátor pro Windows se stahuje jen s SHA-256 z GitHubu, jinak ho obal odmítne.
+const toRelease = (data: any): Release => {
+    const assets: any[] = data.assets || [];
+    const dmg = assets.find((a) => /\.dmg$/i.test(a.name));
+    const exe = assets.find((a) => a.name === 'Lumen-Setup.exe');
+    const sha = exe && typeof exe.digest === 'string' && exe.digest.startsWith('sha256:') ? exe.digest.slice(7).toLowerCase() : null;
+    return {
+        version: String(data.tag_name || '').replace(/^v/i, ''),
+        pageUrl: data.html_url,
+        dmgUrl: dmg ? dmg.browser_download_url : null,
+        exeUrl: exe && sha ? exe.browser_download_url : null,
+        exeSha: sha,
+    };
+};
+
+const useLumenRelease = (platform: Platform) => {
     const [release, setRelease] = useState<Release | null>(null);
     const [dismissed, setDismissed] = useState<string | null>(null);
 
@@ -24,13 +41,20 @@ const useLumenRelease = () => {
         let cancelled = false;
         const check = async () => {
             try {
-                const res = await fetch(`https://api.github.com/repos/${LUMEN_REPO}/releases/latest`, { headers: { Accept: 'application/vnd.github+json' } });
+                const res = await fetch(`https://api.github.com/repos/${LUMEN_REPO}/releases?per_page=15`, { headers: { Accept: 'application/vnd.github+json' } });
                 if (!res.ok) return;
-                const data = await res.json();
-                const version = String(data.tag_name || '').replace(/^v/i, '');
-                if (cancelled || !version || !isNewer(version, LUMEN_VERSION)) return;
-                const dmg = (data.assets || []).find((a: any) => /\.dmg$/i.test(a.name));
-                setRelease({ version, pageUrl: data.html_url, dmgUrl: dmg ? dmg.browser_download_url : null });
+                const list = await res.json();
+                let best: Release | null = null;
+                for (const data of Array.isArray(list) ? list : []) {
+                    if (data.draft || data.prerelease) continue;
+                    const candidate = toRelease(data);
+                    if (!candidate.version || !/^\d+(\.\d+)*$/.test(candidate.version)) continue;
+                    if (platform === 'mac' && !candidate.dmgUrl) continue;
+                    if (platform === 'win' && !candidate.exeUrl) continue;
+                    if (!best || isNewer(candidate.version, best.version)) best = candidate;
+                }
+                if (cancelled || !best || !isNewer(best.version, LUMEN_VERSION)) return;
+                setRelease(best);
             } catch (_) {
                 // offline nebo limit GitHubu: zkusí se znovu později
             }
@@ -38,7 +62,7 @@ const useLumenRelease = () => {
         check();
         const timer = setInterval(check, CHECK_EVERY);
         return () => { cancelled = true; clearInterval(timer); };
-    }, []);
+    }, [platform]);
 
     const dismiss = useCallback(() => {
         if (!release) return;

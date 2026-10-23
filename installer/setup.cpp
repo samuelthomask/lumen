@@ -77,6 +77,7 @@ static bool g_silent = false;
 static bool g_noShortcuts = false;
 static bool g_keepData = false;
 static bool g_uninstallMode = false;
+static bool g_updateMode = false;   // /UPDATE: tichá aktualizace z aplikace, po instalaci znovu spustí Lumen
 static bool g_optDesktop = true, g_optStart = true, g_optLaunch = true, g_optDeleteData = false;
 static std::wstring g_pendingCleanup;   // příkaz spuštěný při ukončení odinstalátoru
 
@@ -147,6 +148,8 @@ static std::wstring normalizeInstallDir(std::wstring d) {
 static bool doInstall() {
     // Běžící Lumen zavřít (jinak by se nepřepsal Lumen.exe)
     runHidden(L"taskkill /IM Lumen.exe /F", true);
+    // staré rozhraní pryč, ať se při aktualizacích nehromadí složky předchozích verzí
+    if (PathIsDirectoryW(g_installDir.c_str())) runHidden(L"cmd /c rmdir /s /q \"" + g_installDir + L"\\web\"", true);
     if (SHCreateDirectoryExW(nullptr, g_installDir.c_str(), nullptr) != ERROR_SUCCESS && !PathIsDirectoryW(g_installDir.c_str())) return false;
 
     wchar_t tmp[MAX_PATH];
@@ -671,6 +674,8 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR cmdline, int) {
     g_noShortcuts = has(L"/NOSHORTCUTS");
     g_keepData = has(L"/KEEPDATA");
     g_uninstallMode = has(L"/uninstall");
+    g_updateMode = has(L"/UPDATE");
+    if (g_updateMode) { g_silent = true; g_optDesktop = false; g_optStart = false; }   // existující zástupci zůstanou, jak jsou
 
     g_installDir = knownFolder(FOLDERID_LocalAppData) + L"\\Programs\\Lumen";
     if (const wchar_t* d = StrStrIW(args.c_str(), L"/D=")) {
@@ -689,7 +694,11 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR cmdline, int) {
         return 0;
     }
 
-    if (g_silent) return doInstall() ? 0 : 1;
+    if (g_silent) {
+        bool ok = doInstall();
+        if (ok && g_updateMode) ShellExecuteW(nullptr, L"open", (g_installDir + L"\\Lumen.exe").c_str(), nullptr, g_installDir.c_str(), SW_SHOWNORMAL);
+        return ok ? 0 : 1;
+    }
     runWizard(inst);
     return 0;
 }
