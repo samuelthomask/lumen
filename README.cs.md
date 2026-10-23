@@ -76,7 +76,7 @@ s automatickým HDR (ve Windows), profily a volitelnou synchronizací šifrovano
 ### 📦 Ostatní
 - 🇨🇿 **Česky jako výchozí jazyk**, 🇬🇧 k dispozici angličtina (rozhraní, nápověda i všechny přidané texty).
 - **Instalátor pro Windows**: jediný `Lumen-Setup.exe` (instalace pro uživatele, zástupci, odinstalace) obsahuje všechno.
-- 🍎 **Instalátor pro macOS**: jediný `Lumen-1.2.1.dmg`, stačí přetáhnout Lumen do Aplikací. Obsahuje i přehrávač a streamovací server. Verze pro macOS je nová v 1.2.1; zdrojové kódy jsou ve složce [`macos/`](macos).
+- 🍎 **Instalátor pro macOS**: jediný `Lumen-1.2.2.dmg`, stačí přetáhnout Lumen do Aplikací. Obsahuje i přehrávač a streamovací server. Verze pro macOS je nová v 1.2.2; zdrojové kódy jsou ve složce [`macos/`](macos).
 
 ## 💻 Požadavky
 
@@ -101,7 +101,7 @@ Odinstalace: *Nastavení → Aplikace* (nebo `Uninstall.exe` v instalační slo�
 
 ### 🍎 macOS
 
-1. Stáhněte **`Lumen-1.2.1.dmg`** z [nejnovějšího vydání](../../releases/latest).
+1. Stáhněte **`Lumen-1.2.2.dmg`** z [nejnovějšího vydání](../../releases/latest).
 2. Otevřete ho a **přetáhněte Lumen do složky Aplikace** (šipka v okně ukazuje kam).
 3. Spusťte **Lumen** ze složky Aplikace (nebo z Launchpadu). Aplikace není podepsaná Apple Developer ID, takže ji macOS poprvé zablokuje hláškou *„Soubor Lumen nebyl otevřen – Společnosti Apple se nepodařilo ověřit, že soubor Lumen neobsahuje malware…"*. To je v pořádku. Klikněte na **Hotovo** (**ne** na *Přesunout do koše*).
 4. Povolte ji jednou v nastavení:

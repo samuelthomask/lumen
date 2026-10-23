@@ -39,7 +39,7 @@ Aplikace:
 
 ```bash
 cd macos
-bash make-app.sh            # vytvoří dist/Lumen.app a dist/Lumen-1.2.1.dmg
+bash make-app.sh            # vytvoří dist/Lumen.app a dist/Lumen-1.2.2.dmg
 LUMEN_LOG=1 dist/Lumen.app/Contents/MacOS/Lumen
 ```
 
