@@ -90,6 +90,8 @@ const Discover = () => {
     const [addonModalOpen, openAddonModal, closeAddonModal] = useBinaryState(false);
     const [mobilePreviewOpen, openMobilePreview, closeMobilePreview] = useBinaryState(false);
     const [selectedMetaItemIndex, setSelectedMetaItemIndex] = React.useState(0);
+    // po kliknutí na dlaždici krátce proletí okolo ní bílý rámeček (n se zvyšuje, aby se animace spustila i při opakovaném kliknutí)
+    const [clickFlash, setClickFlash] = React.useState({ index: -1, n: 0 });
     const isMobile = useMediaQuery(`(max-width: ${screenSizes.xsmall})`);
 
     const compactEpgDate = useMediaQuery(`(max-width: ${screenSizes.xsmall}) and (max-height: ${screenSizes['phone-landscape-size']}) and (orientation: landscape)`);
@@ -207,6 +209,9 @@ const Discover = () => {
         const visible = metaPreviewRef.current && window.getComputedStyle(metaPreviewRef.current).display !== 'none';
         if (event.currentTarget.dataset.index !== selectedMetaItemIndex.toString() && visible) {
             event.preventDefault();
+            // výběr nastavit přímo: událost focus nemusí přijít (stránka v okně aplikace nemá fokus) a zvýraznění by zůstalo u předchozí dlaždice
+            setSelectedMetaItemIndex(index);
+            setClickFlash((flash) => ({ index, n: flash.n + 1 }));
             event.currentTarget.focus();
         }
     }, [isMobile, selectedMetaItemIndex, openMobilePreview]);
@@ -221,6 +226,7 @@ const Discover = () => {
         closeAddonModal();
         closeMobilePreview();
         setSelectedMetaItemIndex(0);
+        setClickFlash({ index: -1, n: 0 });
         setSelectedEpgProgram(null);
     }, [discover.selected, isMobile, closeFilters, closeAddonModal, closeMobilePreview]);
     const renderEmptyState = () => (
@@ -280,6 +286,7 @@ const Discover = () => {
                         poster={Hero.backgroundFor(metaItem.poster) ?? metaItem.poster}
                         posterShape={'landscape'}
                         playname={selectedMetaItemIndex === index}
+                        flash={clickFlash.index === index ? clickFlash.n : 0}
                         deepLinks={metaItem.deepLinks}
                         watched={metaItem.watched}
                         data-index={index}

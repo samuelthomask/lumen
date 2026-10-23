@@ -15,6 +15,19 @@
 
 @play-icon-size: 4rem;
 
+// Lumen: po kliknutí v Discover proletí okolo dlaždice bílý rámeček a zmizí (ukáže, že dlaždice byla vybrána, i když na ní zůstane myš)
+@keyframes lumen-click-flash {
+    0% { opacity: 0; }
+    18% { opacity: 1; }
+    58% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+@keyframes lumen-click-spin {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to { transform: translate(-50%, -50%) rotate(400deg); }
+}
+
 .meta-item-container {
     position: relative;
     padding: 1rem;
@@ -100,6 +113,34 @@
         background-color: var(--overlay-color);
         border-radius: var(--border-radius);
         transition: scale 100ms ease-out;
+
+        .click-flash {
+            position: absolute;
+            inset: 0;
+            z-index: 5;
+            padding: 0.22rem;
+            overflow: hidden;
+            border-radius: inherit;
+            pointer-events: none;
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask-composite: exclude;
+            will-change: opacity;
+            animation: lumen-click-flash 2.6s cubic-bezier(0.45, 0, 0.25, 1) forwards;
+
+            &::before {
+                content: '';
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                width: 230%;
+                aspect-ratio: 1;
+                background: conic-gradient(from 0deg, rgba(255, 255, 255, 0) 0deg, rgba(255, 255, 255, 0) 120deg, rgba(255, 255, 255, 0.12) 200deg, rgba(255, 255, 255, 0.45) 290deg, rgba(255, 255, 255, 1) 360deg);
+                will-change: transform;
+                animation: lumen-click-spin 2.6s cubic-bezier(0.45, 0, 0.25, 1) forwards;
+            }
+        }
 
         &:global(.poster-change-cursor) {
             .poster-image-layer {

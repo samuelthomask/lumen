@@ -4,11 +4,13 @@ import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMatch } from 'react-router';
 import { UpdateBanner } from 'stremio/components';
+import { useLumenText } from 'stremio/common/lumenText';
 import useServiceWorkerUpdater from './useServiceWorkerUpdater';
 import styles from './WebUpdateScreen.less';
 
 const WebUpdateScreen = () => {
     const { t } = useTranslation();
+    const lt = useLumenText();
     const { state, dismissed, applyUpdate, dismissUpdate } = useServiceWorkerUpdater();
     const isPlayer = useMatch('/player/*');
     const autoApply = state.status === 'ready' && state.autoApply;
@@ -37,7 +39,7 @@ const WebUpdateScreen = () => {
                     alt={''}
                 />
                 <div className={styles['title']}>
-                    {t('UPDATER_TITLE')}
+                    {lt('updaterTitle')}
                 </div>
                 <div className={styles['progress']} aria-hidden={true}>
                     <div className={styles['progress-value']} />
@@ -50,8 +52,8 @@ const WebUpdateScreen = () => {
         <UpdateBanner
             className={styles['web-update-banner']}
             visible={promptVisible}
-            label={t('UPDATER_TITLE')}
-            actionLabel={t('RELOAD_UI')}
+            label={lt('updaterTitle')}
+            actionLabel={lt('reloadUi')}
             closeLabel={t('BUTTON_CLOSE')}
             onAction={applyUpdate}
             onClose={dismissUpdate}

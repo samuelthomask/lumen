@@ -28,7 +28,7 @@ const nameVariant = (name) => {
     return hash % 5;
 };
 
-const MetaItem = React.memo(({ className, type, name, poster, posterShape, posterChangeCursor, progress, newVideos, options, actionMenu, deepLinks, href: customHref, dataset, optionOnSelect, onDismissClick, onPlayClick, watched, live, ...props }) => {
+const MetaItem = React.memo(({ className, type, name, poster, posterShape, posterChangeCursor, progress, newVideos, options, actionMenu, deepLinks, href: customHref, dataset, optionOnSelect, onDismissClick, onPlayClick, watched, live, flash, ...props }) => {
     const { t } = useTranslation();
     const artwork = poster && typeof poster === 'object' ? poster : { src: poster, shape: posterShape, changeCursor: posterChangeCursor };
     const showOverlay = artwork.shape === 'landscape' && typeof name === 'string' && name.length > 0;
@@ -138,6 +138,7 @@ const MetaItem = React.memo(({ className, type, name, poster, posterShape, poste
                         }
                     </div>
                     {artwork.overlay}
+                    {flash ? <div key={flash} className={styles['click-flash']} /> : null}
                     {
                         showOverlay ?
                             <div className={styles['title-overlay-layer']}>

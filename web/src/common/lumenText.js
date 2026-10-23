@@ -140,6 +140,9 @@ const DICT = {
         cs: 'Účet je dobrovolný. Ukládá se: váš e-mail (jen kvůli přihlášení a obnově hesla), čas posledního přihlášení a zašifrovaný balík dat (profily, addony, knihovna, rozkoukané díly, nastavení). Balík se šifruje v zařízení klíčem z vašeho hesla (AES-256); heslo ani klíč se nikam neposílají, správce serveru proto obsah nevidí. Data jsou uložena u služby Supabase. Nic se neprodává ani nesdílí, žádná reklama ani sledování. Tlačítkem Smazat účet se účet i data trvale odstraní.',
         en: 'The account is optional. Stored: your email (only for sign-in and password reset), the time of your last sign-in and an encrypted bundle (profiles, addons, library, continue watching, settings). The bundle is encrypted on your device with a key derived from your password (AES-256); neither the password nor the key is ever sent, so the server admin cannot see the contents. Data is stored with Supabase. Nothing is sold or shared, no ads or tracking. Delete account permanently removes the account and its data.'
     },
+    // aktualizace rozhraní (původní text mluvil o Stremiu)
+    updaterTitle: { cs: 'Je k dispozici nová verze Lumenu', en: 'A new version of Lumen is available' },
+    reloadUi: { cs: 'Načíst znovu', en: 'Reload' },
     // nápověda
     helpTab: { cs: 'Nápověda', en: 'Help' }
 };
