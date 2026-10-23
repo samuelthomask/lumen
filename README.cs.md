@@ -21,6 +21,7 @@ Toto není návod ke stahování nelegálního obsahu. Lumen je pouze přehráva
 - **Detail**: velké pozadí s kartou informací, zdroje a epizody v mřížce karet.
 - **Tři velikosti náhledů** (velké / střední / malé) na domovské stránce, v Objevit, Knihovně a vyhledávání; pamatují se.
 - **Lokální knihovna a „pokračovat ve sledování"** bez účtu, vše zůstává u vás v počítači.
+- **Profily**: každý má vlastní addony, knihovnu a „pokračovat ve sledování", volitelně s PINem. Profily lze exportovat do souboru `.lumen` (volitelně chráněného heslem) a naimportovat na jiném zařízení.
 - **Preference zdrojů**: řazení podle jazyka (česky → anglicky) a minimální kvality (4K / Full HD) pro výsledky jakéhokoli addonu.
 - **Addony**: instalace komunitních addonů jedním klikem, přidání jedné adresy, nebo **import více adres najednou**. Nic není předinstalované.
 - **Přehrávač (mpv)**: hardwarové dekódování, synchronizace s displejem, nabídky titulků a zvukových stop, **načtení titulků ze souboru** (.srt/.vtt), skleněná ovládací lišta.

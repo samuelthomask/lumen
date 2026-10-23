@@ -21,6 +21,7 @@ This is not a guide for downloading illegal content. Lumen is only a player and 
 - **Detail page**: big backdrop with an information card, sources / episodes in a card grid.
 - **Three preview sizes** (large / medium / small) for home, discover, library and search, remembered between runs.
 - **Local library and "continue watching"** – no account needed, everything stays on your computer.
+- **Profiles**: each person has their own addons, library and "continue watching", with an optional PIN. Export profiles to a `.lumen` file (optionally password-protected) and import it on another device.
 - **Source preferences**: order sources by language (Czech → English) and minimum quality (4K / Full HD), applied to the results of any addon.
 - **Addons**: install community addons in one click, add one URL, or **import many URLs at once**. Nothing is preinstalled.
 - **Player (mpv)**: hardware decoding, display-synchronised playback, subtitle & audio track menus, **load subtitles from a file** (.srt/.vtt), glass control bar.
