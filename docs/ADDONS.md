@@ -22,7 +22,7 @@ The format is documented in the [addon SDK](https://github.com/Stremio/stremio-a
    Addresses that cannot be loaded are reported by their line number only (the address itself is never shown or logged).
 
 An addon address can contain **personal keys** (for example a service token). Do not share it, do not paste it into issues or public chats.
-Lumen stores installed addons in the local profile (`%LOCALAPPDATA%\StremioMod`), unencrypted.
+Lumen stores installed addons in the local profile (Windows: `%LOCALAPPDATA%\StremioMod`, macOS: `~/Library/WebKit/io.github.samuelthomask.lumen`), unencrypted.
 
 ## Choosing the best source / Výběr zdroje
 

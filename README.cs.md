@@ -4,11 +4,12 @@
 
 # Lumen
 
-**Tmavý „skleněný" prohlížeč a přehrávač filmů a seriálů pro Windows** 🎬✨
-s automatickým HDR, profily a volitelnou synchronizací šifrovanou od konce ke konci.
+**Tmavý „skleněný" prohlížeč a přehrávač filmů a seriálů pro Windows a macOS** 🎬✨
+s automatickým HDR (ve Windows), profily a volitelnou synchronizací šifrovanou od konce ke konci.
 
 [![Stáhnout](https://img.shields.io/github/v/release/samuelthomask/Lumen?style=for-the-badge&color=0a84ff&label=Stáhnout)](../../releases/latest)
 [![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-bf5af2?style=for-the-badge&logo=windows11&logoColor=white)](#-instalace)
+[![macOS](https://img.shields.io/badge/macOS-12%2B%20(Apple%20Silicon)-bf5af2?style=for-the-badge&logo=apple&logoColor=white)](#-instalace)
 [![HDR](https://img.shields.io/badge/HDR-automaticky-ff9f0a?style=for-the-badge)](#-funkce)
 [![Licence](https://img.shields.io/badge/Licence-GPL--2.0-30d158?style=for-the-badge)](LICENSE)
 
@@ -65,7 +66,7 @@ s automatickým HDR, profily a volitelnou synchronizací šifrovanou od konce ke
 
 ### 🎬 Přehrávač a HDR
 - **Přehrávač mpv**: hardwarové dekódování, synchronizace s displejem, nabídky titulků a zvukových stop, **načtení titulků ze souboru** (.srt / .vtt), skleněná ovládací lišta, která se sama skryje.
-- 🌈 **Automatické HDR ve Windows**: při přechodu do fullscreenu s HDR / Dolby Vision videem se zapne HDR na daném displeji a po skončení se vrátí (a obnoví se i po pádu aplikace). Pokud jste měli HDR zapnuté už před tím, zůstane tak.
+- 🌈 **Automatické HDR ve Windows**: při přechodu do fullscreenu s HDR / Dolby Vision videem se zapne HDR na daném displeji a po skončení se vrátí (a obnoví se i po pádu aplikace). Pokud jste měli HDR zapnuté už před tím, zůstane tak. *(Jen ve Windows. Verze pro macOS zatím přehrává HDR videa v SDR.)*
 
 ### 🧩 Addony a zdroje
 - Komunitní addony jedním klikem, přidání jedné adresy, nebo **import více adres najednou**. Nic není předinstalované.
@@ -74,22 +75,44 @@ s automatickým HDR, profily a volitelnou synchronizací šifrovanou od konce ke
 
 ### 📦 Ostatní
 - 🇨🇿 **Česky jako výchozí jazyk**, 🇬🇧 k dispozici angličtina (rozhraní, nápověda i všechny přidané texty).
-- **Instalátor**: jediný `Lumen-Setup.exe` (instalace pro uživatele, zástupci, odinstalace) obsahuje všechno.
-- 🍎 Experimentální verze pro **macOS** je ve složce [`macos/`](macos) (zatím nevyzkoušená).
+- **Instalátor pro Windows**: jediný `Lumen-Setup.exe` (instalace pro uživatele, zástupci, odinstalace) obsahuje všechno.
+- 🍎 **Instalátor pro macOS**: jediný `Lumen-1.2.1.dmg`, stačí přetáhnout Lumen do Aplikací. Obsahuje i přehrávač a streamovací server. Verze pro macOS je nová v 1.2.1; zdrojové kódy jsou ve složce [`macos/`](macos).
 
 ## 💻 Požadavky
 
+**Windows**
 - Windows 10 / 11 (x64) s **WebView2 runtime** (ve Windows 11 už je).
 - Nic dalšího instalovat nemusíte: instalátor obsahuje přehrávací knihovnu (libmpv) i lokální streamovací server (Node.js + WebTorrent).
 - Displej s podporou HDR, pokud chcete automatické HDR (nepovinné).
 
+**macOS**
+- macOS 12 Monterey nebo novější na **Macu s Apple Silicon** (M1 a novější). Macy s procesorem Intel zatím nejsou podporované.
+- Nic dalšího instalovat nemusíte: aplikace obsahuje přehrávací knihovnu (libmpv) i lokální streamovací server (Node.js + WebTorrent).
+
 ## 🚀 Instalace
+
+### 🪟 Windows
 
 1. Stáhněte **`Lumen-Setup.exe`** z [nejnovějšího vydání](../../releases/latest).
 2. Spusťte ho. Soubor není podepsaný, takže Windows SmartScreen může varovat: *Další informace → Přesto spustit*.
 3. Spusťte **Lumen** ze zástupce na ploše nebo z nabídky Start.
 
 Odinstalace: *Nastavení → Aplikace* (nebo `Uninstall.exe` v instalační složce). Instalátor se zeptá, jestli smazat i vaše data.
+
+### 🍎 macOS
+
+1. Stáhněte **`Lumen-1.2.1.dmg`** z [nejnovějšího vydání](../../releases/latest).
+2. Otevřete ho a **přetáhněte Lumen do složky Aplikace** (šipka v okně ukazuje kam).
+3. Spusťte **Lumen** ze složky Aplikace (nebo z Launchpadu). Aplikace není podepsaná Apple Developer ID, takže ji macOS poprvé zablokuje:
+   - **pravé tlačítko na Lumen → Otevřít → Otevřít**, nebo
+   - na novějším macOS: *Nastavení systému → Soukromí a zabezpečení → sjeďte dolů → Přesto otevřít*.
+
+   Děláte to jen jednou. Pokud macOS hlásí, že je aplikace *poškozená*, spusťte v Terminálu tento příkaz a otevřete ji znovu:
+   ```bash
+   xattr -dr com.apple.quarantine /Applications/Lumen.app
+   ```
+
+Odinstalace: přetáhněte Lumen ze složky Aplikace do Koše. Pokud chcete smazat i data, odstraňte `~/Library/WebKit/io.github.samuelthomask.lumen`, `~/Library/Application Support/Lumen` a `~/Library/Caches/io.github.samuelthomask.lumen`.
 
 ## 🍿 Jak získat obsah a addony
 
@@ -105,7 +128,7 @@ Z důvodu dodržování pravidel GitHubu zde neuvádíme konkrétní názvy ani 
 
 ## 🔒 Soukromí
 
-Lumen funguje i bez účtu a jeho rozhraní neposílá žádné analytické události. Síťové požadavky ale dělá tam, kam to potřebuje: na servery addonů, které nainstalujete, servery s obrázky (plakáty, pozadí, loga) a veřejnou službu s popisy filmů. Vestavěné jádro aplikace může kontaktovat své výchozí katalogové služby. Knihovna, nastavení a adresy addonů jsou uložené lokálně v `%LOCALAPPDATA%\StremioMod`.
+Lumen funguje i bez účtu a jeho rozhraní neposílá žádné analytické události. Síťové požadavky ale dělá tam, kam to potřebuje: na servery addonů, které nainstalujete, servery s obrázky (plakáty, pozadí, loga) a veřejnou službu s popisy filmů. Vestavěné jádro aplikace může kontaktovat své výchozí katalogové služby. Knihovna, nastavení a adresy addonů jsou uložené lokálně (Windows: `%LOCALAPPDATA%\StremioMod`, macOS: `~/Library/WebKit/io.github.samuelthomask.lumen`).
 
 Pokud si vytvoříte volitelný účet, ukládá se jen váš e-mail a jeden **zašifrovaný** balík (Supabase, EU). Podrobnosti v [zásadách ochrany soukromí](docs/PRIVACY.md).
 

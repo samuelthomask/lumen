@@ -1,29 +1,28 @@
-# Lumen pro macOS (experimentální)
+# Lumen pro macOS
 
-Nativní obal pro Mac: okno s `WKWebView` (rozhraní) nad videem `mpv`, plus pomocný server (Node + WebTorrent), který také servíruje rozhraní.
-Windows verze zůstává hlavní; tahle je **první verze a nebyla ještě zkoušena na skutečném Macu**, proto je tu postup ladění.
+Nativní obal pro Mac (Apple Silicon, macOS 12+): okno s `WKWebView` (rozhraní) nad videem `mpv`, plus pomocný server (Node + WebTorrent), který také servíruje rozhraní.
+Video kreslí mpv přes render API (OpenGL) přímo do okna Lumenu. Instalace pro uživatele: viz hlavní [README](../README.cs.md#-instalace).
 
 ## Požadavky (na Macu)
 
 ```bash
-xcode-select --install          # Swift a nástroje (jednou)
-brew install mpv node           # přehrávač a Node.js
-brew install dylibbundler       # volitelné: přibalí knihovny mpv do aplikace
+xcode-select --install                          # Swift a nástroje (jednou)
+brew install mpv node pnpm dylibbundler pkgconf # přehrávač, Node.js, sestavení webu, přibalení knihoven
 ```
 
 ## Sestavení
 
-Potřebujete sestavené rozhraní. Jednoduché je rozbalit `lumen-web-build.zip` (z vydání), nebo `pnpm build` ve složce `web/`.
-
 ```bash
+cd web && pnpm install && LUMEN_EDITION=public pnpm build && cd ..   # rozhraní (nebo rozbalte lumen-web-build.zip)
 cd macos
-WEB_BUILD=/cesta/k/rozbalenemu/web-build bash make-app.sh     # bez WEB_BUILD se hledá ../web/build
+bash make-app.sh        # dist/Lumen.app a instalační dist/Lumen-<verze>.dmg
 open dist/Lumen.app
 ```
 
-Skript postaví aplikaci, přibalí server a Node, ikonu a vytvoří `dist/Lumen.app` a `dist/Lumen-1.2.1.dmg`.
-Aplikace se podepíše **ad-hoc** (zdarma, bez Apple účtu). Při prvním otevření Mac ukáže varování:
-pravé tlačítko na aplikaci → **Otevřít** → **Otevřít** (na novějších macOS: *Nastavení → Soukromí a zabezpečení → Přesto otevřít*).
+`WEB_BUILD=/cesta/k/web-build bash make-app.sh` použije hotové rozhraní odjinud (bez něj se hledá `../web/build`).
+Aplikace se podepíše **ad-hoc** (zdarma, bez Apple účtu), proto je při prvním otevření potřeba pravé tlačítko → **Otevřít**.
+`.dmg` (tmavé pozadí, šipka do složky Aplikace) vyrábí `make-dmg.sh` s pozadím z `dmg-background.swift`. Okno se ve Finderu nastavuje přes AppleScript;
+když to Mac nepovolí (*Soukromí a zabezpečení → Automatizace*), `.dmg` funguje, jen s výchozím vzhledem. `MAKE_DMG=0` vytvoření `.dmg` vynechá.
 
 ## Když něco nejede
 
@@ -33,23 +32,18 @@ Spusťte z terminálu, uvidíte podrobný log:
 LUMEN_LOG=1 dist/Lumen.app/Contents/MacOS/Lumen
 ```
 
-Přehrávač má přepínače, protože způsob vykreslení videa na Macu se u mpv liší podle verze:
+| Proměnná | Význam |
+|---|---|
+| `LUMEN_LOG=1` | podrobný log (včetně zpráv mpv) do terminálu |
+| `LUMEN_HWDEC` | hardwarové dekódování, výchozí `videotoolbox` (zkuste `no`) |
+| `LUMEN_TEST_FILE` | soubor nebo adresa, která se přehraje hned po startu (ladění přehrávače) |
+| `LUMEN_WEB_DIR` | složka s rozhraním místo přibaleného |
 
-| Proměnná | Výchozí | Zkuste |
-|---|---|---|
-| `LUMEN_VO` | `gpu-next` | `gpu` |
-| `LUMEN_GPU_API` | `vulkan` | `opengl` |
-| `LUMEN_GPU_CONTEXT` | `macvk` | `cocoa` |
-| `LUMEN_HWDEC` | `videotoolbox` | `no` |
-
-Například: `LUMEN_VO=gpu LUMEN_GPU_API=opengl LUMEN_GPU_CONTEXT=cocoa LUMEN_LOG=1 dist/Lumen.app/Contents/MacOS/Lumen`
-(OpenGL varianta je spolehlivější, ale bez HDR.) Log serveru: `~/Library/Application Support/Lumen/torrent-server.log`.
-
-Když se nic neukáže, pošlete výpis z terminálu.
+Log serveru: `~/Library/Application Support/Lumen/torrent-server.log`.
 
 ## Co je a není
 
-- Rozhraní, profily, export/import `.lumen`, torrenty i přímé odkazy fungují stejně jako ve Windows.
-- **HDR:** na Macu se nepřepíná ručně. mpv posílá HDR přes EDR, pokud to displej umí (MacBook Pro s XDR, Studio Display apod.).
-- Nepodepsaná (ad-hoc) aplikace, bez notarizace.
+- Rozhraní, profily, export/import `.lumen`, účet se synchronizací, torrenty i přímé odkazy fungují stejně jako ve Windows.
+- **HDR:** na Macu zatím není, HDR videa se přehrají v SDR. Zkoušená cesta přes OpenGL render API nefungovala (tmavé rozhraní); správné řešení vyžaduje Metal.
+- Nepodepsaná (ad-hoc) aplikace, bez notarizace; jen Apple Silicon (arm64).
 - Přenos mezi Windows a Macem: profily (`.lumen`) jsou stejný soubor na obou systémech.

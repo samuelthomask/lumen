@@ -90,9 +90,7 @@ echo "==> Podepisuji (ad-hoc, bez Apple účtu)"
 codesign --force --deep -s - "$APP"
 
 if [ "${MAKE_DMG:-1}" = "1" ]; then
-  echo "==> Vytvářím .dmg"
-  rm -f "$OUT/Lumen-$VERSION.dmg"
-  hdiutil create -volname "Lumen" -srcfolder "$APP" -ov -format UDZO "$OUT/Lumen-$VERSION.dmg" >/dev/null
+  VERSION="$VERSION" bash make-dmg.sh
 fi
 
 echo

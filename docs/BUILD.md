@@ -1,6 +1,6 @@
 # Building Lumen from source
 
-Windows 10/11 x64. All paths below are examples – every script reads its prerequisites from environment variables.
+Windows 10/11 x64 (sections 2–3). The macOS version (Apple Silicon) is built on a Mac, see [section 4](#4-macos-macos) and [`macos/README-macos.md`](../macos/README-macos.md). All Windows paths below are examples – every script reads its prerequisites from environment variables.
 
 ## 1. Web (the user interface)
 
@@ -67,3 +67,18 @@ installer\build-installer.bat
 Builds `dist\Lumen-Setup.exe` (≈ 110 MB, mostly `node.exe` and `libmpv-2.dll`): the shell, `libmpv-2.dll`, the torrent server with Node, `web\build`, licenses and a payload ZIP are embedded in a small C++ installer.
 It uses `tar.exe` (part of Windows 10/11) to unpack. Silent install for testing:
 `Lumen-Setup.exe /S /D=C:\Temp\LumenTest /NOSHORTCUTS`, uninstall: `Uninstall.exe /uninstall /S /NOSHORTCUTS`.
+
+## 4. macOS (`macos/`)
+
+Apple Silicon Mac, macOS 12+. Requirements: Xcode Command Line Tools (`xcode-select --install`) and Homebrew packages
+`brew install mpv node pnpm dylibbundler pkgconf`.
+
+```bash
+cd web && pnpm install && LUMEN_EDITION=public pnpm build && cd ..
+cd macos && bash make-app.sh
+```
+
+Builds `macos/dist/Lumen.app` and the installer `macos/dist/Lumen-<version>.dmg` (≈ 90 MB; dark background with an arrow
+to the Applications folder, made by `make-dmg.sh` and `dmg-background.swift`). The app is signed ad-hoc (no Apple account),
+so the first launch needs *right-click → Open*. The libraries of mpv and Node from Homebrew are bundled into the app with `dylibbundler`.
+Layout of the DMG window is set through Finder (AppleScript); if automation is not allowed, the DMG still works, only with the default look.

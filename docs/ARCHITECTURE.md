@@ -66,6 +66,15 @@ The built-in server sends CORS headers only for the origin of the app's own page
 The shell serves the web page from that virtual host (WebView2 `SetVirtualHostNameToFolderMapping`); the Stremio server also accepts it because its allow-list contains
 origins ending with `localhost:11470`. Chromium's private-network checks are disabled for the Lumen window.
 
+## macOS shell (`macos/`)
+
+Same idea, different technology: a Swift app (`macos/Sources/Lumen/main.swift`) with a `WKWebView` (transparent) over an `NSOpenGLView`
+that mpv renders into through the libmpv **render API** (`vo=libmpv`, which is also what the interface asks for). The protocol between the
+interface and the shell is the same JSON as on Windows (a small script injected into the page replaces `window.chrome.webview`).
+mpv commands run on a background queue (changing the video output from the main thread deadlocks). The local server is the same
+`torrent-server/server.js`, started with a bundled Node from `Contents/Resources/torrent`, and it also serves the web interface on `127.0.0.1:11470`.
+There is no automatic HDR on macOS yet (the OpenGL render API outputs SDR).
+
 ## Interface additions (web/)
 
 - `src/App/lumen.less` – the theme (CSS variables, glass panels, layout of side bar, player bar, detail page, density presets).
