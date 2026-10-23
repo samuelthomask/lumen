@@ -76,6 +76,7 @@ if command -v dylibbundler >/dev/null; then
   chmod u+w "$NODE_DIR/node"
   dylibbundler -od -of -b -x "$NODE_DIR/node" -d "$NODE_DIR/libs" -p @executable_path/libs -s "$(brew --prefix node 2>/dev/null)/lib" >/dev/null 2>&1
   for bin in "$NODE_DIR/node" "$NODE_DIR"/libs/*.dylib; do
+    [ -f "$bin" ] || continue   # Node bez vnějších knihoven (např. z nodejs.org) žádnou složku libs nemá
     for rp in $(otool -l "$bin" | grep -A2 LC_RPATH | awk '/path /{print $2}' | sort | uniq -d); do
       install_name_tool -delete_rpath "$rp" "$bin" 2>/dev/null
     done
