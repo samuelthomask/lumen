@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useMatch } from 'react-router';
 import { UpdateBanner } from 'stremio/components';
 import { useLumenText } from 'stremio/common/lumenText';
+import LumenReleaseBanner from './LumenReleaseBanner';
 import useServiceWorkerUpdater from './useServiceWorkerUpdater';
 import styles from './WebUpdateScreen.less';
 
@@ -49,6 +50,8 @@ const WebUpdateScreen = () => {
     }
 
     return (
+        <>
+        <LumenReleaseBanner />
         <UpdateBanner
             className={styles['web-update-banner']}
             visible={promptVisible}
@@ -58,6 +61,7 @@ const WebUpdateScreen = () => {
             onAction={applyUpdate}
             onClose={dismissUpdate}
         />
+        </>
     );
 };
 

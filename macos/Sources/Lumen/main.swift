@@ -472,7 +472,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         if type == 3 {   // INIT: vlastnosti obalu
             func prop(_ name: String, _ value: String) -> [Any] { [0, name, 0, value] }
             send(["id": 0, "type": 3, "data": ["transport": ["properties": [
-                prop("shellVersion", "lumen-macos 1.2.2"),
+                prop("shellVersion", "lumen-macos 1.2.3"),
                 prop("streamingServerUrl", "http://127.0.0.1:\(serverPort)/"),
                 prop("gpuVideoProcessing", "false"),
                 prop("nativeAssSubtitles", "false"),
@@ -495,11 +495,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
             if let name = arg1 as? String { player.observe(name) }
         case "win-set-visibility":
             if let d = arg1 as? [String: Any], let want = d["fullscreen"] as? Bool, want != fullscreen { window.toggleFullScreen(nil) }
+        case "lumen-update":
+            if let link = arg1 as? String { downloadUpdate(link) }
         case "quit":
             NSApp.terminate(nil)
         default:
             break   // app-ready, media.*, discord-* a další zatím ignorujeme
         }
+    }
+
+    // aktualizace: stáhne DMG z GitHub releases do Stažených a otevře ho (uživatel přetáhne Lumen do Aplikací)
+    func downloadUpdate(_ link: String) {
+        guard let url = URL(string: link), url.scheme == "https", url.host == "github.com",
+              url.path.hasPrefix("/samuelthomask/lumen/releases/download/"), url.pathExtension == "dmg" else { return }
+        let downloads = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first ?? FileManager.default.temporaryDirectory
+        let target = downloads.appendingPathComponent(url.lastPathComponent)
+        URLSession.shared.downloadTask(with: url) { [weak self] tmp, response, error in
+            guard let tmp = tmp, error == nil, (response as? HTTPURLResponse)?.statusCode == 200 else {
+                DispatchQueue.main.async { NSWorkspace.shared.open(URL(string: "https://github.com/samuelthomask/lumen/releases/latest")!) }
+                return
+            }
+            try? FileManager.default.removeItem(at: target)
+            do { try FileManager.default.moveItem(at: tmp, to: target) } catch { return }
+            DispatchQueue.main.async { NSWorkspace.shared.open(target); log("update downloaded: \(target.path)") }
+        }.resume()
     }
 
     // fullscreen: stav z okna (tlačítko, klávesová zkratka) i z webu

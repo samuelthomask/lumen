@@ -142,6 +142,9 @@ const DICT = {
     },
     // aktualizace rozhraní (původní text mluvil o Stremiu)
     updaterTitle: { cs: 'Je k dispozici nová verze Lumenu', en: 'A new version of Lumen is available' },
+    lumenNewVersion: { cs: 'Je dostupná nová verze Lumenu', en: 'A new version of Lumen is available' },
+    lumenDownload: { cs: 'Stáhnout', en: 'Download' },
+    lumenWhatsNew: { cs: 'Zobrazit', en: 'View' },
     reloadUi: { cs: 'Načíst znovu', en: 'Reload' },
     // nápověda
     helpTab: { cs: 'Nápověda', en: 'Help' }
