@@ -1,0 +1,51 @@
+# Sestaví macOS .dmg na GitHubu (runner s Apple Silicon) a přidá ho k danému vydání.
+# Spuštění: Actions → "Build macOS dmg" → Run workflow → zadat tag vydání (např. 1.2.8),
+# nebo z terminálu: gh workflow run build-macos.yml -f tag=1.2.8
+name: Build macOS dmg
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag vydání, ke kterému se dmg přidá (např. 1.2.8)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  dmg:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Nástroje
+        run: |
+          npm install -g pnpm@11.8.0
+          brew install mpv dylibbundler
+
+      - name: Web (veřejná edice)
+        working-directory: web
+        env:
+          LUMEN_EDITION: public
+          LUMEN_REPO_URL: https://github.com/${{ github.repository }}
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+
+      - name: Aplikace a dmg
+        working-directory: macos
+        env:
+          VERSION: ${{ inputs.tag }}
+        run: bash make-app.sh
+
+      - name: Přidat dmg k vydání
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ inputs.tag }}" "macos/dist/Lumen-${{ inputs.tag }}.dmg" --clobber
