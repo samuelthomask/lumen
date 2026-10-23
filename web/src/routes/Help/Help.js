@@ -19,6 +19,8 @@ const ADDON_SDK_URL = 'https://github.com/Stremio/stremio-addon-sdk';
 const RECOMMENDED_PLACEHOLDERS = ['DOPLNEK_1', 'DOPLNEK_2', 'SLUZBA_1', 'SLUZBA_2'];
 const RECOMMENDED_URL = REPO_URL ? `${REPO_URL}/blob/main/docs/ADDONS.md` : null;
 
+const ProfilesHelp = require('./ProfilesHelp');
+
 const link = (label, href) => (
     <a key={href} className={'lumen-help-link'} href={href} target={'_blank'} rel={'noopener noreferrer'}>{label}</a>
 );
@@ -98,6 +100,8 @@ const Help = () => {
                     <h2>{tx.debridTitle}</h2>
                     <p>{tx.debridText}</p>
                 </section>
+
+                <ProfilesHelp />
 
                 <section className={'lumen-help-card'}>
                     <h2>{tx.recTitle}</h2>

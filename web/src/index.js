@@ -22,6 +22,8 @@ const App = require('./App');
 const { default: WebUpdateScreen } = require('./App/WebUpdateScreen');
 const { CoreProvider } = require('./core');
 const { FileDropProvider, PlatformProvider } = require('./common');
+const profiles = require('./common/profiles');
+const { ProfilePicker } = require('./App/ProfilePicker/ProfilePicker');
 
 // Lumen: názvy "Stremio" v překladech nahradit názvem aplikace (název a značka Stremia nepoužíváme)
 const rebrand = (text) => typeof text === 'string' ? text.replace(/Stremio/g, 'Lumen').replace(/STREMIO/g, 'LUMEN') : text;
@@ -49,9 +51,23 @@ const appInfo = {
     shellVersion: null
 };
 
-const root = ReactDOM.createRoot(document.getElementById('app'));
-root.render(
-    <React.StrictMode>
+// Lumen: profily. Před spuštěním jádra se případně přepne profil a při více profilech se zobrazí jejich výběr.
+profiles.init();
+try {
+    const stored = JSON.parse(window.localStorage.getItem('profile'));
+    const lang = stored && stored.settings && stored.settings.interfaceLanguage;
+    if (typeof lang === 'string') i18n.changeLanguage(lang);
+    else if (window.localStorage.getItem('lumen.langInit') !== '1') i18n.changeLanguage('cs-CZ');
+} catch (_) {
+    // jazyk se nastaví až po startu jádra
+}
+
+const Root = () => {
+    const [picked, setPicked] = React.useState(!profiles.needsPicker());
+    if (!picked) {
+        return <ProfilePicker onDone={(profile) => { profiles.switchLocal(profile.id); setPicked(true); }} />;
+    }
+    return (
         <PlatformProvider>
             <CoreProvider appInfo={appInfo}>
                 <FileDropProvider>
@@ -64,5 +80,12 @@ root.render(
                 </FileDropProvider>
             </CoreProvider>
         </PlatformProvider>
+    );
+};
+
+const root = ReactDOM.createRoot(document.getElementById('app'));
+root.render(
+    <React.StrictMode>
+        <Root />
     </React.StrictMode>
 );

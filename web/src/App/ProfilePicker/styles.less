@@ -1,0 +1,271 @@
+.picker {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3rem;
+    background:
+        radial-gradient(60rem 36rem at 15% 10%, rgba(10, 132, 255, 0.28), transparent 60%),
+        radial-gradient(60rem 40rem at 90% 100%, rgba(120, 70, 230, 0.26), transparent 60%),
+        #060609;
+    color: rgba(255, 255, 255, 0.94);
+    font-family: 'Inter', system-ui, sans-serif;
+
+    .title {
+        font-size: 2.6rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+    }
+
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 2.4rem;
+        max-width: 90vw;
+    }
+
+    .tile {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        width: 9.5rem;
+        padding: 0;
+        border: none;
+        background: none;
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+
+        .avatar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 8rem;
+            height: 8rem;
+            border-radius: 50%;
+            font-size: 3.2rem;
+            font-weight: 600;
+            color: #fff;
+            box-shadow: 0 0.6rem 2rem rgba(0, 0, 0, 0.45), inset 0 0 0 0.1rem rgba(255, 255, 255, 0.25);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .name {
+            font-size: 1.15rem;
+            color: rgba(255, 255, 255, 0.78);
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .lock {
+            position: absolute;
+            top: 0.2rem;
+            right: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .badge {
+            position: absolute;
+            top: 0;
+            left: 0.75rem;
+            width: 8rem;
+            height: 8rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.55);
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        &:hover .avatar,
+        &:focus-visible .avatar {
+            transform: scale(1.07);
+            box-shadow: 0 0.8rem 2.4rem rgba(0, 0, 0, 0.5), 0 0 0 0.25rem rgba(255, 255, 255, 0.85);
+        }
+    }
+
+    .add .avatar {
+        background: rgba(255, 255, 255, 0.1);
+        font-size: 3.6rem;
+        font-weight: 300;
+        box-shadow: inset 0 0 0 0.1rem rgba(255, 255, 255, 0.3);
+    }
+
+    .hint {
+        max-width: 46rem;
+        padding: 0 2rem;
+        text-align: center;
+        font-size: 1.05rem;
+        line-height: 1.45;
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    .manage {
+        padding: 0.8rem 2rem;
+        border-radius: 99rem;
+        border: 0.1rem solid rgba(255, 255, 255, 0.22);
+        background: rgba(255, 255, 255, 0.1);
+        color: inherit;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    }
+}
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.55);
+    font-family: 'Inter', system-ui, sans-serif;
+    color: rgba(255, 255, 255, 0.94);
+}
+
+.modal {
+    width: 30rem;
+    max-width: 92vw;
+    padding: 2rem;
+    border-radius: 1.6rem;
+    border: 0.1rem solid rgba(255, 255, 255, 0.14);
+    background: rgba(34, 35, 44, 0.94);
+    box-shadow: 0 1rem 4rem rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+
+    h2 {
+        margin: 0;
+        font-size: 1.6rem;
+        font-weight: 600;
+    }
+
+    p {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.65);
+        font-size: 1.05rem;
+        line-height: 1.4;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 0.4rem;
+        font-size: 1rem;
+        color: rgba(255, 255, 255, 0.65);
+    }
+
+    input[type="text"],
+    input[type="password"] {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0.85rem 1rem;
+        border-radius: 0.9rem;
+        border: 0.1rem solid rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.08);
+        color: inherit;
+        font: inherit;
+        font-size: 1.15rem;
+        outline: none;
+
+        &:focus {
+            border-color: rgb(10, 132, 255);
+        }
+    }
+
+    .colors {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.7rem;
+
+        button {
+            width: 2.4rem;
+            height: 2.4rem;
+            border-radius: 50%;
+            border: 0.2rem solid transparent;
+            cursor: pointer;
+
+            &.selected {
+                border-color: #fff;
+            }
+        }
+    }
+
+    .error {
+        color: #ff6b6b;
+        font-size: 1rem;
+    }
+
+    .buttons {
+        display: flex;
+        gap: 0.8rem;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .button {
+        padding: 0.75rem 1.5rem;
+        border-radius: 99rem;
+        border: 0.1rem solid rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.1);
+        color: inherit;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+
+        &.primary {
+            background: rgb(10, 132, 255);
+            border-color: transparent;
+        }
+
+        &.danger {
+            color: #ff6b6b;
+            margin-right: auto;
+        }
+
+        &:hover {
+            filter: brightness(1.15);
+        }
+    }
+
+    .link {
+        align-self: flex-start;
+        margin-top: 0.4rem;
+        padding: 0;
+        border: none;
+        background: none;
+        color: rgb(10, 132, 255);
+        font: inherit;
+        cursor: pointer;
+    }
+}
+
+.sbutton {
+    padding: 0.8rem 1.6rem;
+    border-radius: 99rem;
+    border: 0.1rem solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.08);
+    color: inherit;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.16);
+    }
+}

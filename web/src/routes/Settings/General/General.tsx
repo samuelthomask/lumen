@@ -4,6 +4,8 @@ import { useCore } from 'stremio/core';
 import { Toggle } from 'stremio/components';
 import { useDiscord } from 'stremio/common';
 import { Section, Option, Link } from '../components';
+// @ts-ignore
+import ProfilesSection from './ProfilesSection';
 import styles from './General.less';
 
 type Props = {
@@ -45,6 +47,10 @@ const General = forwardRef<HTMLDivElement, Props>(({ profile }: Props, ref) => {
                         'A player and catalog browser. No accounts: your library, continue watching and settings stay on this computer only.'}
                 </div>
             </div>
+        </Section>
+
+        <Section>
+            <ProfilesSection />
         </Section>
 
         <Section>
