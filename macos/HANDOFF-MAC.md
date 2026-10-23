@@ -1,6 +1,6 @@
 # Lumen: předávací příručka pro práci na Macu (a pak Android TV)
 
-Stav k 2026-10-23, verze **1.2.0**. Windows verze je hotová a vydaná. macOS verze je napsaná, ale **ještě nikdy nebyla
+Stav k 2026-10-23, verze **1.2.1**. Windows verze je hotová a vydaná. macOS verze je napsaná, ale **ještě nikdy nebyla
 zkompilována ani spuštěna**. Android TV je jen plán.
 
 ## 1. Jak dostat kód na Mac
@@ -39,7 +39,7 @@ Aplikace:
 
 ```bash
 cd macos
-bash make-app.sh            # vytvoří dist/Lumen.app a dist/Lumen-1.2.0.dmg
+bash make-app.sh            # vytvoří dist/Lumen.app a dist/Lumen-1.2.1.dmg
 LUMEN_LOG=1 dist/Lumen.app/Contents/MacOS/Lumen
 ```
 
@@ -97,4 +97,4 @@ Toto je plán, ne ověřený postup.
 - E-maily s kódem chodí z Gmailu přes Brevo a **Yahoo (a možná další) je nedoručí**. Trvalá oprava je vlastní doména ověřená
   v Brevo (SPF/DKIM), viz poznámky v `cloud/SUPABASE-SETUP.md` ve vývojovém repu.
 - Synchronizace na dvou zařízeních zároveň je neověřená.
-- Instalátor 1.2.0 nebyl zkoušen na čistém počítači.
+- Instalátor 1.2.1 nebyl zkoušen na čistém počítači.

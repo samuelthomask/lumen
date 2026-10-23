@@ -4,8 +4,8 @@
 102 RCDATA "res/Inter-Regular.ttf"
 103 RCDATA "res/Inter-SemiBold.ttf"
 1 VERSIONINFO
- FILEVERSION 1,2,0,0
- PRODUCTVERSION 1,2,0,0
+ FILEVERSION 1,2,1,0
+ PRODUCTVERSION 1,2,1,0
  FILEOS VOS_NT_WINDOWS32
  FILETYPE VFT_APP
 BEGIN
@@ -17,8 +17,8 @@ BEGIN
       VALUE "FileDescription", "Lumen Setup"
       VALUE "ProductName", "Lumen"
       VALUE "LegalCopyright", L"\x00a9 Samuel Thomas Kone\x010dn\x00fd (samuelthomask)"
-      VALUE "FileVersion", "1.2.0.0"
-      VALUE "ProductVersion", "1.2.0.0"
+      VALUE "FileVersion", "1.2.1.0"
+      VALUE "ProductVersion", "1.2.1.0"
     END
   END
   BLOCK "VarFileInfo"
