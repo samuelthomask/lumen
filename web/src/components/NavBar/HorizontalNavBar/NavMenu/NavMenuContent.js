@@ -16,10 +16,14 @@ const { default: usePlayUrl } = require('stremio/common/usePlayUrl');
 const useToast = require('stremio/common/Toast/useToast');
 const { withCoreSuspender } = require('stremio/common/CoreSuspender');
 const useStreamingServer = require('stremio/common/useStreamingServer');
+const lumenProfiles = require('stremio/common/profiles');
+const { useLumenText } = require('stremio/common/lumenText');
 const styles = require('./styles');
 
 const NavMenuContent = ({ onClick }) => {
     const { t } = useTranslation();
+    const lumenText = useLumenText();
+    const activeProfile = lumenProfiles.getActive();
     const navigate = useNavigate();
     const core = useCore();
     const profile = useProfile();
@@ -65,18 +69,19 @@ const NavMenuContent = ({ onClick }) => {
                 <div
                     className={styles['avatar-container']}
                     style={{
-                        backgroundImage: profile.auth === null ?
-                            `url('${require('/assets/images/anonymous.png')}')`
-                            :
-                            profile.auth.user.avatar ?
-                                `url('${profile.auth.user.avatar}')`
-                                :
-                                `url('${require('/assets/images/default_avatar.png')}')`
+                        background: `linear-gradient(145deg, ${activeProfile ? activeProfile.color : '#0a84ff'}, ${activeProfile ? activeProfile.color : '#0a84ff'}99)`,
+                        color: '#fff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '1.8rem',
+                        fontWeight: 600,
+                        opacity: 1
                     }}
-                />
+                >{activeProfile ? activeProfile.name.trim().charAt(0).toUpperCase() : 'L'}</div>
                 <div className={styles['user-info-details']}>
                     <div className={styles['email-container']}>
-                        <div className={styles['email-label']}>Lumen</div>
+                        <div className={styles['email-label']}>{activeProfile ? activeProfile.name : 'Lumen'}</div>
                     </div>
                 </div>
             </div>
@@ -106,6 +111,10 @@ const NavMenuContent = ({ onClick }) => {
                     null
             }
             <div className={styles['nav-menu-section']}>
+                <Button className={styles['nav-menu-option-container']} title={lumenText('profileSwitch')} onClick={() => window.dispatchEvent(new CustomEvent('lumen:open-profile-picker'))}>
+                    <Icon className={styles['icon']} name={'person-outline'} />
+                    <div className={styles['nav-menu-option-label']}>{lumenText('profileSwitch')}</div>
+                </Button>
                 <Button className={styles['nav-menu-option-container']} title={ t('SETTINGS') } href={'#/settings'}>
                     <Icon className={styles['icon']} name={'settings'} />
                     <div className={styles['nav-menu-option-label']}>{ t('SETTINGS') }</div>

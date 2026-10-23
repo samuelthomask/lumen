@@ -1,6 +1,7 @@
 // Lumen: výběr profilu při startu (před spuštěním jádra) a dialogy pro správu profilů.
 
 const React = require('react');
+const ReactDOM = require('react-dom');
 const profiles = require('stremio/common/profiles');
 const { useLumenText } = require('stremio/common/lumenText');
 const styles = require('./styles.less');
@@ -8,13 +9,14 @@ const styles = require('./styles.less');
 const initial = (name) => (name || '?').trim().charAt(0).toUpperCase();
 const avatarStyle = (color) => ({ background: `linear-gradient(145deg, ${color}, ${color}99)` });
 
-const Modal = ({ title, children, onClose }) => (
+const Modal = ({ title, children, onClose }) => ReactDOM.createPortal(
     <div className={styles['modal-backdrop']} onMouseDown={(event) => { if (event.target === event.currentTarget && onClose) onClose(); }}>
         <div className={styles['modal']}>
             <h2>{title}</h2>
             {children}
         </div>
-    </div>
+    </div>,
+    document.body
 );
 
 const PinModal = ({ profile, onOk, onClose }) => {
@@ -109,7 +111,7 @@ const ProfilePicker = ({ onDone, onCancel }) => {
         enter(profile);
     };
 
-    return (
+    return ReactDOM.createPortal(
         <div className={styles['picker']} onKeyDown={(event) => { if (event.key === 'Escape' && onCancel) onCancel(); }}>
             <div className={styles['title']}>{managing ? text('manageProfiles') : text('whoWatching')}</div>
             <div className={styles['row']}>
@@ -127,10 +129,12 @@ const ProfilePicker = ({ onDone, onCancel }) => {
                         <div className={styles['name']}>{text('addProfile')}</div>
                     </button> : null}
             </div>
-            <button className={styles['manage']} onClick={() => setManaging(!managing)}>
-                {managing ? text('doneManaging') : text('manageProfiles')}
-            </button>
-            {onCancel ? <button className={styles['manage']} onClick={onCancel}>{text('profileCancel')}</button> : null}
+            <div className={styles['actions']}>
+                <button className={styles['manage']} onClick={() => setManaging(!managing)}>
+                    {managing ? text('doneManaging') : text('manageProfiles')}
+                </button>
+                {onCancel ? <button className={styles['manage']} onClick={onCancel}>{text('profileCancel')}</button> : null}
+            </div>
             <div className={styles['hint']}>{text('profileTransferHint')}</div>
             {pinFor ? <PinModal profile={pinFor} onOk={() => enter(pinFor)} onClose={() => setPinFor(null)} /> : null}
             {editing !== undefined ?
@@ -138,7 +142,8 @@ const ProfilePicker = ({ onDone, onCancel }) => {
                     onSaved={() => { setEditing(undefined); refresh(); }}
                     onDeleted={() => { setEditing(undefined); refresh(); }}
                     onClose={() => setEditing(undefined)} /> : null}
-        </div>
+        </div>,
+        document.body
     );
 };
 

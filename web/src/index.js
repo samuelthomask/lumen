@@ -64,6 +64,12 @@ try {
 
 const Root = () => {
     const [picked, setPicked] = React.useState(!profiles.needsPicker());
+    const [switching, setSwitching] = React.useState(false);
+    React.useEffect(() => {
+        const open = () => setSwitching(true);
+        window.addEventListener('lumen:open-profile-picker', open);
+        return () => window.removeEventListener('lumen:open-profile-picker', open);
+    }, []);
     if (!picked) {
         return <ProfilePicker onDone={(profile) => { profiles.switchLocal(profile.id); setPicked(true); }} />;
     }
@@ -75,6 +81,16 @@ const Root = () => {
                         <>
                             <WebUpdateScreen />
                             <App />
+                            {switching ?
+                                <ProfilePicker
+                                    onCancel={() => setSwitching(false)}
+                                    onDone={(profile) => {
+                                        setSwitching(false);
+                                        const active = profiles.getActive();
+                                        if (active && profile.id !== active.id) profiles.requestSwitch(profile.id);
+                                    }} />
+                                :
+                                null}
                         </>
                     </HashRouter>
                 </FileDropProvider>

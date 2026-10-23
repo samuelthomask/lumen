@@ -5,8 +5,11 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 3rem;
+    justify-content: safe center;
+    gap: 2rem;
+    padding: 2rem 0;
+    box-sizing: border-box;
+    overflow-y: auto;
     background:
         radial-gradient(60rem 36rem at 15% 10%, rgba(10, 132, 255, 0.28), transparent 60%),
         radial-gradient(60rem 40rem at 90% 100%, rgba(120, 70, 230, 0.26), transparent 60%),
@@ -26,6 +29,8 @@
         justify-content: center;
         gap: 2.4rem;
         max-width: 90vw;
+        padding: 1.5rem 2rem;
+        overflow: visible;
     }
 
     .tile {
@@ -41,6 +46,7 @@
         color: inherit;
         font: inherit;
         cursor: pointer;
+        overflow: visible;
 
         .avatar {
             display: flex;
@@ -108,6 +114,13 @@
         font-size: 1.05rem;
         line-height: 1.45;
         color: rgba(255, 255, 255, 0.5);
+    }
+
+    .actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
     }
 
     .manage {
