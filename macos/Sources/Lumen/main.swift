@@ -4,7 +4,7 @@
 // a servíruje i samotné rozhraní.
 //
 // Video: mpv kreslí přes render API (OpenGL) přímo do našeho view, žádné vlastní okno mpv.
-// Ladicí proměnné prostředí: LUMEN_HWDEC (videotoolbox), LUMEN_TEST_FILE, LUMEN_WEB_DIR, LUMEN_LOG=1 (podrobný log do terminálu).
+// Ladicí proměnné prostředí: LUMEN_HWDEC (videotoolbox), LUMEN_TEST_FILE, LUMEN_TEST_UPDATE (odkaz na DMG), LUMEN_WEB_DIR, LUMEN_LOG=1 (podrobný log do terminálu).
 
 import AppKit
 import WebKit
@@ -384,6 +384,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         if !player.start(videoView: videoView) { alert("Cannot start the mpv player (libmpv).") }
         if let test = ProcessInfo.processInfo.environment["LUMEN_TEST_FILE"] { player.command(["loadfile", test]) }   // ladění: přehraje soubor hned po startu
 
+        if let test = ProcessInfo.processInfo.environment["LUMEN_TEST_UPDATE"] { downloadUpdate(test) }   // ladění: spustí aktualizaci z daného odkazu na DMG
         DispatchQueue.global().async { [weak self] in
             guard let self = self else { return }
             let error = self.server.start(webDir: webDir)
@@ -472,7 +473,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         if type == 3 {   // INIT: vlastnosti obalu
             func prop(_ name: String, _ value: String) -> [Any] { [0, name, 0, value] }
             send(["id": 0, "type": 3, "data": ["transport": ["properties": [
-                prop("shellVersion", "lumen-macos 1.2.3"),
+                prop("shellVersion", "lumen-macos 1.2.4"),
                 prop("streamingServerUrl", "http://127.0.0.1:\(serverPort)/"),
                 prop("gpuVideoProcessing", "false"),
                 prop("nativeAssSubtitles", "false"),
@@ -504,21 +505,71 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         }
     }
 
-    // aktualizace: stáhne DMG z GitHub releases do Stažených a otevře ho (uživatel přetáhne Lumen do Aplikací)
+    // aktualizace: stáhne DMG z GitHub releases, nahradí tuto aplikaci novou verzí a spustí ji znovu.
+    // Když to nejde (aplikace není v zapisovatelné složce, chyba sítě...), otevře se DMG a uživatel přetáhne Lumen ručně.
     func downloadUpdate(_ link: String) {
         guard let url = URL(string: link), url.scheme == "https", url.host == "github.com",
               url.path.hasPrefix("/samuelthomask/lumen/releases/download/"), url.pathExtension == "dmg" else { return }
-        let downloads = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first ?? FileManager.default.temporaryDirectory
-        let target = downloads.appendingPathComponent(url.lastPathComponent)
         URLSession.shared.downloadTask(with: url) { [weak self] tmp, response, error in
-            guard let tmp = tmp, error == nil, (response as? HTTPURLResponse)?.statusCode == 200 else {
+            guard let self = self, let tmp = tmp, error == nil, (response as? HTTPURLResponse)?.statusCode == 200 else {
                 DispatchQueue.main.async { NSWorkspace.shared.open(URL(string: "https://github.com/samuelthomask/lumen/releases/latest")!) }
                 return
             }
-            try? FileManager.default.removeItem(at: target)
-            do { try FileManager.default.moveItem(at: tmp, to: target) } catch { return }
-            DispatchQueue.main.async { NSWorkspace.shared.open(target); log("update downloaded: \(target.path)") }
+            let fm = FileManager.default
+            let work = fm.temporaryDirectory.appendingPathComponent("lumen-update-\(getpid())")
+            try? fm.removeItem(at: work)
+            try? fm.createDirectory(at: work, withIntermediateDirectories: true)
+            let dmg = work.appendingPathComponent("Lumen.dmg")
+            try? fm.moveItem(at: tmp, to: dmg)
+            if !self.installUpdate(dmg: dmg, work: work) {
+                let downloads = fm.urls(for: .downloadsDirectory, in: .userDomainMask).first ?? work
+                let target = downloads.appendingPathComponent(url.lastPathComponent)
+                try? fm.removeItem(at: target)
+                try? fm.moveItem(at: dmg, to: target)
+                DispatchQueue.main.async { NSWorkspace.shared.open(target) }
+            }
+            try? fm.removeItem(at: work)
         }.resume()
+    }
+
+    @discardableResult
+    func run(_ path: String, _ args: [String]) -> Bool {
+        let p = Process()
+        p.executableURL = URL(fileURLWithPath: path)
+        p.arguments = args
+        p.standardOutput = FileHandle.nullDevice
+        p.standardError = FileHandle.nullDevice
+        do { try p.run() } catch { return false }
+        p.waitUntilExit()
+        return p.terminationStatus == 0
+    }
+
+    func installUpdate(dmg: URL, work: URL) -> Bool {
+        let fm = FileManager.default
+        let current = Bundle.main.bundleURL
+        let parent = current.deletingLastPathComponent()
+        guard current.pathExtension == "app", fm.isWritableFile(atPath: parent.path) else { log("update: app folder is not writable"); return false }
+        let mount = work.appendingPathComponent("mnt")
+        try? fm.createDirectory(at: mount, withIntermediateDirectories: true)
+        guard run("/usr/bin/hdiutil", ["attach", "-nobrowse", "-readonly", "-noverify", "-mountpoint", mount.path, dmg.path]) else { return false }
+        defer { run("/usr/bin/hdiutil", ["detach", mount.path, "-force"]) }
+        let source = mount.appendingPathComponent("Lumen.app")
+        let staged = parent.appendingPathComponent(".Lumen-update.app")
+        try? fm.removeItem(at: staged)
+        guard fm.fileExists(atPath: source.appendingPathComponent("Contents/Info.plist").path),
+              run("/usr/bin/ditto", [source.path, staged.path]) else { try? fm.removeItem(at: staged); return false }
+        run("/usr/bin/xattr", ["-cr", staged.path])
+        // po ukončení této aplikace starou nahradí novou a spustí ji
+        let script = "while kill -0 \(getpid()) 2>/dev/null; do sleep 0.3; done; rm -rf \"$1\" && mv \"$2\" \"$1\" && open \"$1\""
+        let swap = Process()
+        swap.executableURL = URL(fileURLWithPath: "/bin/sh")
+        swap.arguments = ["-c", script, "sh", current.path, staged.path]
+        swap.standardOutput = FileHandle.nullDevice
+        swap.standardError = FileHandle.nullDevice
+        guard (try? swap.run()) != nil else { try? fm.removeItem(at: staged); return false }
+        log("update: installed, restarting")
+        DispatchQueue.main.async { NSApp.terminate(nil) }
+        return true
     }
 
     // fullscreen: stav z okna (tlačítko, klávesová zkratka) i z webu

@@ -30,7 +30,7 @@ using std::max;
 using namespace Gdiplus;
 
 static const wchar_t* APP_NAME = L"Lumen";
-static const wchar_t* APP_VERSION = L"1.2.3";
+static const wchar_t* APP_VERSION = L"1.2.4";
 static const wchar_t* APP_AUTHOR = L"Samuel Thomas Konečný";
 static const wchar_t* APP_AUTHOR_HANDLE = L"samuelthomask";
 static const wchar_t* APP_URL = L"https://github.com/samuelthomask/Lumen";

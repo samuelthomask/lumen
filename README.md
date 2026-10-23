@@ -76,7 +76,7 @@ with automatic HDR (Windows), profiles and optional end-to-end encrypted sync.
 ### 📦 Everything else
 - 🇨🇿 **Czech by default**, 🇬🇧 English available (UI, help and all added texts).
 - **Windows installer**: a single `Lumen-Setup.exe` (per-user install, shortcuts, uninstaller) that includes everything.
-- 🍎 **macOS installer**: a single `Lumen-1.2.3.dmg`, drag Lumen to Applications. It includes the player and the streaming server too. The macOS version is new in 1.2.2; the source is in [`macos/`](macos).
+- 🍎 **macOS installer**: a single `Lumen-1.2.4.dmg`, drag Lumen to Applications. It includes the player and the streaming server too. The macOS version is new in 1.2.2; the source is in [`macos/`](macos).
 
 ## 💻 Requirements
 
@@ -101,7 +101,7 @@ Uninstall via *Settings → Apps* (or run `Uninstall.exe` in the install folder)
 
 ### 🍎 macOS
 
-1. Download **`Lumen-1.2.3.dmg`** from the [latest release](../../releases/latest).
+1. Download **`Lumen-1.2.4.dmg`** from the [latest release](../../releases/latest).
 2. Open it and **drag Lumen to the Applications folder** (the arrow in the window shows where).
 3. Open **Lumen** from Applications (or Launchpad). The app is not signed with an Apple Developer ID, so macOS blocks it the first time with the message *"Lumen Not Opened – Apple could not verify "Lumen" is free of malware…"*. This is expected. Click **Done** (do **not** click *Move to Trash*).
 4. Allow it once in the settings:
