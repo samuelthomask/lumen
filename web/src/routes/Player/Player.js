@@ -335,8 +335,17 @@ const Player = () => {
         seekByKeyboard(offset);
     }, [canSeek, seekByKeyboard]);
     const overlayHidden = React.useMemo(() => {
-        return keyboardSeekTime === null && immersed && !casting && video.state.paused !== null && !video.state.paused && !menusOpen;
+        // Lumen: rozhraní se po pár sekundách nečinnosti skryje i při pauze
+        return keyboardSeekTime === null && immersed && !casting && video.state.paused !== null && !menusOpen;
     }, [keyboardSeekTime, immersed, casting, video.state.paused, menusOpen]);
+
+    // při pauze rozhraní krátce ukázat a po nečinnosti skrýt
+    React.useEffect(() => {
+        if (video.state.paused === true) {
+            setImmersed(false);
+            setImmersedDebounced(true);
+        }
+    }, [video.state.paused]);
 
     React.useEffect(() => {
         if (!video.state.manifest?.props.includes('subtitlesOffsetMinimum')) {
