@@ -20,6 +20,10 @@ with automatic HDR (Windows), profiles and optional end-to-end encrypted sync.
 > [!WARNING]
 > **This is not a guide for downloading illegal content.** Lumen is only a player and provides no content. All links lead to third-party services. Use only content you have the right to watch. You are responsible for third-party addons and services. Do everything purely at your own risk.
 
+https://github.com/user-attachments/assets/7c7c40a3-a23d-4a13-b2ba-edfe1fefa871
+
+
+
 ![Home](docs/screenshots/board.png)
 
 ## 📸 Screenshots
