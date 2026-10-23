@@ -65,6 +65,22 @@ PLIST
 echo "==> Přibaluji knihovny mpv"
 if command -v dylibbundler >/dev/null; then
   dylibbundler -od -b -x "$APP/Contents/MacOS/Lumen" -d "$APP/Contents/Frameworks" -p @executable_path/../Frameworks >/dev/null
+  # dylibbundler přidá rpath podruhé a novější dyld duplicitu odmítne
+  for bin in "$APP/Contents/MacOS/Lumen" "$APP"/Contents/Frameworks/*.dylib; do
+    if [ "$(otool -l "$bin" | grep -c 'path @executable_path/../Frameworks/ ')" -gt 1 ]; then
+      install_name_tool -delete_rpath @executable_path/../Frameworks/ "$bin" 2>/dev/null
+    fi
+  done
+  # Node z Homebrew je tenký spouštěč nad libnode a dalšími knihovnami: přibalit i je
+  NODE_DIR="$APP/Contents/Resources/torrent"
+  chmod u+w "$NODE_DIR/node"
+  dylibbundler -od -of -b -x "$NODE_DIR/node" -d "$NODE_DIR/libs" -p @executable_path/libs -s "$(brew --prefix node 2>/dev/null)/lib" >/dev/null 2>&1
+  for bin in "$NODE_DIR/node" "$NODE_DIR"/libs/*.dylib; do
+    for rp in $(otool -l "$bin" | grep -A2 LC_RPATH | awk '/path /{print $2}' | sort | uniq -d); do
+      install_name_tool -delete_rpath "$rp" "$bin" 2>/dev/null
+    done
+    codesign --force -s - "$bin" 2>/dev/null
+  done
 else
   echo "   (dylibbundler není nainstalován: aplikace poběží jen na tomto Macu, kde je mpv z Homebrew."
   echo "    Pro přenosnou aplikaci: brew install dylibbundler a spusťte skript znovu.)"

@@ -3,13 +3,14 @@
 // tady ho zajišťuje malý skript vložený do stránky. Lokální server (Node + WebTorrent) běží jako pomocný proces
 // a servíruje i samotné rozhraní.
 //
-// Ladicí proměnné prostředí: LUMEN_VO (výchozí gpu-next), LUMEN_GPU_API (vulkan), LUMEN_GPU_CONTEXT (macvk),
-// LUMEN_HWDEC (videotoolbox), LUMEN_WEB_DIR, LUMEN_LOG=1 (podrobný log do terminálu).
+// Video: mpv kreslí přes render API (OpenGL) přímo do našeho view, žádné vlastní okno mpv.
+// Ladicí proměnné prostředí: LUMEN_HWDEC (videotoolbox), LUMEN_TEST_FILE, LUMEN_WEB_DIR, LUMEN_LOG=1 (podrobný log do terminálu).
 
 import AppKit
 import WebKit
 import CMpv
 import Foundation
+import OpenGL.GL3
 
 let serverPort = 11470
 let verbose = ProcessInfo.processInfo.environment["LUMEN_LOG"] != nil
@@ -71,12 +72,88 @@ func mpvString(_ value: Any) -> String {
 
 // MARK: - Video (mpv)
 
-final class MpvVideoView: NSView {
+private func glProcAddress(_ ctx: UnsafeMutableRawPointer?, _ name: UnsafePointer<CChar>?) -> UnsafeMutableRawPointer? {
+    guard let name = name else { return nil }
+    return dlsym(UnsafeMutableRawPointer(bitPattern: -2), name)   // RTLD_DEFAULT: framework OpenGL je přilinkovaný
+}
+
+/// View s OpenGL kontextem, do kterého mpv kreslí přes render API.
+final class MpvVideoView: NSOpenGLView {
+    private var renderContext: OpaquePointer?
+
+    init() {
+        let attrs: [NSOpenGLPixelFormatAttribute] = [
+            UInt32(NSOpenGLPFAOpenGLProfile), UInt32(NSOpenGLProfileVersion3_2Core),
+            UInt32(NSOpenGLPFADoubleBuffer), UInt32(NSOpenGLPFAAccelerated),
+            UInt32(NSOpenGLPFAColorSize), 24, 0
+        ]
+        super.init(frame: .zero, pixelFormat: NSOpenGLPixelFormat(attributes: attrs))!
+        wantsBestResolutionOpenGLSurface = true
+    }
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) is not supported") }
+
     override var isOpaque: Bool { true }
-    override func makeBackingLayer() -> CALayer {
-        let layer = CALayer()
-        layer.backgroundColor = NSColor.black.cgColor
-        return layer
+
+    /// Vytvoří render kontext mpv; volat po mpv_initialize.
+    func attach(_ mpv: OpaquePointer) -> Bool {
+        guard let gl = openGLContext else { return false }
+        gl.makeCurrentContext()
+        var apiType = Array(MPV_RENDER_API_TYPE_OPENGL.utf8CString)
+        var ctx: OpaquePointer?
+        let r: Int32 = apiType.withUnsafeMutableBufferPointer { api in
+            var initParams = mpv_opengl_init_params(get_proc_address: glProcAddress, get_proc_address_ctx: nil)
+            return withUnsafeMutablePointer(to: &initParams) { ip in
+                var params = [
+                    mpv_render_param(type: MPV_RENDER_PARAM_API_TYPE, data: UnsafeMutableRawPointer(api.baseAddress)),
+                    mpv_render_param(type: MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, data: UnsafeMutableRawPointer(ip)),
+                    mpv_render_param(type: MPV_RENDER_PARAM_INVALID, data: nil)
+                ]
+                return mpv_render_context_create(&ctx, mpv, &params)
+            }
+        }
+        if r < 0 { log("mpv_render_context_create: \(String(cString: mpv_error_string(r)))"); return false }
+        renderContext = ctx
+        mpv_render_context_set_update_callback(ctx, { raw in
+            guard let raw = raw else { return }
+            let view = Unmanaged<MpvVideoView>.fromOpaque(raw).takeUnretainedValue()
+            DispatchQueue.main.async { view.needsDisplay = true }
+        }, Unmanaged.passUnretained(self).toOpaque())
+        return true
+    }
+
+    override func draw(_ dirtyRect: NSRect) {
+        guard let gl = openGLContext else { return }
+        gl.makeCurrentContext()
+        let size = convertToBacking(bounds).size
+        if let ctx = renderContext {
+            _ = mpv_render_context_update(ctx)
+            var fbo = mpv_opengl_fbo(fbo: 0, w: Int32(size.width), h: Int32(size.height), internal_format: 0)
+            var currentFbo: GLint = 0
+            glGetIntegerv(GLenum(GL_FRAMEBUFFER_BINDING), &currentFbo)
+            fbo.fbo = currentFbo
+            var flipY: Int32 = 1
+            withUnsafeMutablePointer(to: &fbo) { fp in
+                withUnsafeMutablePointer(to: &flipY) { yp in
+                    var params = [
+                        mpv_render_param(type: MPV_RENDER_PARAM_OPENGL_FBO, data: UnsafeMutableRawPointer(fp)),
+                        mpv_render_param(type: MPV_RENDER_PARAM_FLIP_Y, data: UnsafeMutableRawPointer(yp)),
+                        mpv_render_param(type: MPV_RENDER_PARAM_INVALID, data: nil)
+                    ]
+                    mpv_render_context_render(ctx, &params)
+                }
+            }
+        } else {
+            glClearColor(0, 0, 0, 1)
+            glClear(GLbitfield(GL_COLOR_BUFFER_BIT))
+        }
+        gl.flushBuffer()
+    }
+
+    override func reshape() {
+        super.reshape()
+        openGLContext?.update()
+        needsDisplay = true
     }
 }
 
@@ -86,7 +163,7 @@ final class Player {
     var onSignal: ((String, Any) -> Void)?
     var onEnded: ((Any) -> Void)?
 
-    func start(videoView: NSView) -> Bool {
+    func start(videoView: MpvVideoView) -> Bool {
         guard let h = mpv_create() else { return false }
         handle = h
         let env = ProcessInfo.processInfo.environment
@@ -102,22 +179,24 @@ final class Player {
         opt("terminal", "no")
         opt("volume-max", "200")   // posuvník hlasitosti jde do 200 %, výchozí strop mpv je 130
         opt("keep-open", "no")
-        opt("force-window", "yes")
-        opt("vo", env["LUMEN_VO"] ?? "gpu-next")
-        opt("gpu-api", env["LUMEN_GPU_API"] ?? "vulkan")
-        opt("gpu-context", env["LUMEN_GPU_CONTEXT"] ?? "macvk")
+        opt("vo", "libmpv")
         opt("hwdec", env["LUMEN_HWDEC"] ?? "videotoolbox")
-        opt("target-colorspace-hint", "yes")     // HDR (EDR), když to displej umí
         opt("video-sync", "audio")
-        var wid = Int64(Int(bitPattern: Unmanaged.passUnretained(videoView).toOpaque()))
-        mpv_set_option(h, "wid", MPV_FORMAT_INT64, &wid)
         if mpv_initialize(h) < 0 { return false }
+        if !videoView.attach(h) { return false }
         mpv_request_log_messages(h, verbose ? "v" : "warn")
         Thread.detachNewThread { [weak self] in self?.eventLoop() }
         return true
     }
 
+    // Volání mpv běží mimo hlavní vlákno: video výstup mpv se při restartu dotazuje hlavního vlákna a jinak vznikne deadlock.
+    private let mpvQueue = DispatchQueue(label: "lumen.mpv")
+
     func command(_ args: [String]) {
+        mpvQueue.async { [weak self] in self?.commandSync(args) }
+    }
+
+    private func commandSync(_ args: [String]) {
         guard let h = handle else { return }
         var cargs: [UnsafePointer<CChar>?] = args.map { UnsafePointer(strdup($0)) } + [nil]
         let r = mpv_command(h, &cargs)
@@ -126,6 +205,12 @@ final class Player {
     }
 
     func setProperty(_ name: String, _ value: String) {
+        // rozhraní chce vo=libmpv (render API), které tu nepoužíváme; ponecháme vlastní výstup
+        if name == "vo" { return }
+        mpvQueue.async { [weak self] in self?.setPropertySync(name, value) }
+    }
+
+    private func setPropertySync(_ name: String, _ value: String) {
         guard let h = handle else { return }
         let r = mpv_set_property_string(h, name, value)
         if r < 0 { log("mpv set \(name)=\(value): \(String(cString: mpv_error_string(r)))") }
@@ -137,8 +222,7 @@ final class Player {
     }
 
     func shutdown() {
-        running = false
-        if let h = handle { mpv_terminate_destroy(h); handle = nil }
+        running = false   // mpv se neničí: proces hned skončí a destroy na hlavním vlákně visel na zavírání zvuku
     }
 
     private func eventLoop() {
@@ -279,7 +363,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         container.autoresizingMask = [.width, .height]
         videoView.frame = frame
         videoView.autoresizingMask = [.width, .height]
-        videoView.wantsLayer = true
         container.addSubview(videoView)
 
         let config = WKWebViewConfiguration()
@@ -299,6 +382,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         player.onSignal = { [weak self] name, data in self?.sendSignal(name, data) }
         player.onEnded = { [weak self] data in self?.sendSignal("mpv-event-ended", data) }
         if !player.start(videoView: videoView) { alert("Cannot start the mpv player (libmpv).") }
+        if let test = ProcessInfo.processInfo.environment["LUMEN_TEST_FILE"] { player.command(["loadfile", test]) }   // ladění: přehraje soubor hned po startu
 
         DispatchQueue.global().async { [weak self] in
             guard let self = self else { return }
@@ -328,6 +412,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
     func applicationWillTerminate(_ notification: Notification) {
         server.stop()
         player.shutdown()
+        exit(0)   // mpv už nemá vlastní okno, nečekáme na jeho úklid
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        if (notification.object as? NSWindow) === window { NSApp.terminate(nil) }
     }
 
     // MARK: menu (kopírovat/vložit v textových polích, ukončení, celá obrazovka)

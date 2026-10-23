@@ -9,3 +9,4 @@ stage/
 *.res
 *.local.js
 .DS_Store
+.build/
