@@ -103,11 +103,15 @@ Odinstalace: *Nastavení → Aplikace* (nebo `Uninstall.exe` v instalační slo�
 
 1. Stáhněte **`Lumen-1.2.1.dmg`** z [nejnovějšího vydání](../../releases/latest).
 2. Otevřete ho a **přetáhněte Lumen do složky Aplikace** (šipka v okně ukazuje kam).
-3. Spusťte **Lumen** ze složky Aplikace (nebo z Launchpadu). Aplikace není podepsaná Apple Developer ID, takže ji macOS poprvé zablokuje:
-   - **pravé tlačítko na Lumen → Otevřít → Otevřít**, nebo
-   - na novějším macOS: *Nastavení systému → Soukromí a zabezpečení → sjeďte dolů → Přesto otevřít*.
+3. Spusťte **Lumen** ze složky Aplikace (nebo z Launchpadu). Aplikace není podepsaná Apple Developer ID, takže ji macOS poprvé zablokuje hláškou *„Soubor Lumen nebyl otevřen – Společnosti Apple se nepodařilo ověřit, že soubor Lumen neobsahuje malware…"*. To je v pořádku. Klikněte na **Hotovo** (**ne** na *Přesunout do koše*).
+4. Povolte ji jednou v nastavení:
+   1. Otevřete **Nastavení systému → Soukromí a zabezpečení**.
+   2. Sjeďte úplně dolů do části **Zabezpečení**. Uvidíte *„Soubor Lumen byl v zájmu ochrany Macu zablokován"*.
+   3. Klikněte na **Přesto otevřít**, potvrďte heslem nebo Touch ID a v dalším okně klikněte na **Otevřít**.
 
-   Děláte to jen jednou. Pokud macOS hlásí, že je aplikace *poškozená*, spusťte v Terminálu tento příkaz a otevřete ji znovu:
+   Děláte to jen jednou, pak se Lumen otevírá normálně. Na starším macOS (12–14) stačí **pravé tlačítko na Lumen → Otevřít → Otevřít**.
+
+   Pokud macOS hlásí, že je aplikace *poškozená*, spusťte v Terminálu tento příkaz a otevřete ji znovu:
    ```bash
    xattr -dr com.apple.quarantine /Applications/Lumen.app
    ```

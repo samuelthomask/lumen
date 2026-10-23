@@ -103,11 +103,15 @@ Uninstall via *Settings → Apps* (or run `Uninstall.exe` in the install folder)
 
 1. Download **`Lumen-1.2.1.dmg`** from the [latest release](../../releases/latest).
 2. Open it and **drag Lumen to the Applications folder** (the arrow in the window shows where).
-3. Open **Lumen** from Applications (or Launchpad). The app is not signed with an Apple Developer ID, so macOS blocks it the first time:
-   - **right-click Lumen → Open → Open**, or
-   - on newer macOS: *System Settings → Privacy & Security → scroll down → Open Anyway*.
+3. Open **Lumen** from Applications (or Launchpad). The app is not signed with an Apple Developer ID, so macOS blocks it the first time with the message *"Lumen Not Opened – Apple could not verify "Lumen" is free of malware…"*. This is expected. Click **Done** (do **not** click *Move to Trash*).
+4. Allow it once in the settings:
+   1. Open **System Settings → Privacy & Security**.
+   2. Scroll all the way down to the **Security** section. You will see *"Lumen was blocked to protect your Mac"*.
+   3. Click **Open Anyway**, confirm with your password or Touch ID, and click **Open** in the next window.
 
-   You only do this once. If macOS says the app is *damaged*, run this in Terminal and open it again:
+   You only do this once, from then on Lumen opens normally. On older macOS (12–14) it is enough to **right-click Lumen → Open → Open**.
+
+   If macOS says the app is *damaged*, run this in Terminal and open it again:
    ```bash
    xattr -dr com.apple.quarantine /Applications/Lumen.app
    ```

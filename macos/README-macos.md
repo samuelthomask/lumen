@@ -20,7 +20,7 @@ open dist/Lumen.app
 ```
 
 `WEB_BUILD=/cesta/k/web-build bash make-app.sh` použije hotové rozhraní odjinud (bez něj se hledá `../web/build`).
-Aplikace se podepíše **ad-hoc** (zdarma, bez Apple účtu), proto je při prvním otevření potřeba pravé tlačítko → **Otevřít**.
+Aplikace se podepíše **ad-hoc** (zdarma, bez Apple účtu), proto ji macOS poprvé zablokuje. Hlášku zavřete tlačítkem **Hotovo** a pak v *Nastavení systému → Soukromí a zabezpečení* (dole, část Zabezpečení) klikněte na **Přesto otevřít** (na macOS 12–14 stačí pravé tlačítko → Otevřít).
 `.dmg` (tmavé pozadí, šipka do složky Aplikace) vyrábí `make-dmg.sh` s pozadím z `dmg-background.swift`. Okno se ve Finderu nastavuje přes AppleScript;
 když to Mac nepovolí (*Soukromí a zabezpečení → Automatizace*), `.dmg` funguje, jen s výchozím vzhledem. `MAKE_DMG=0` vytvoření `.dmg` vynechá.
 

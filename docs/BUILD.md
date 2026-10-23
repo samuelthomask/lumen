@@ -80,5 +80,5 @@ cd macos && bash make-app.sh
 
 Builds `macos/dist/Lumen.app` and the installer `macos/dist/Lumen-<version>.dmg` (≈ 90 MB; dark background with an arrow
 to the Applications folder, made by `make-dmg.sh` and `dmg-background.swift`). The app is signed ad-hoc (no Apple account),
-so the first launch needs *right-click → Open*. The libraries of mpv and Node from Homebrew are bundled into the app with `dylibbundler`.
+so the first launch needs *System Settings → Privacy & Security → Open Anyway* (on macOS 12–14: right-click → Open). The libraries of mpv and Node from Homebrew are bundled into the app with `dylibbundler`.
 Layout of the DMG window is set through Finder (AppleScript); if automation is not allowed, the DMG still works, only with the default look.
