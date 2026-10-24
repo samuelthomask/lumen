@@ -746,3 +746,54 @@ html[data-density='l'] [class*='title-overlay-layer'] {
 }
 
 .lumen-help .lumen-help-link-static { background-color: rgba(255, 255, 255, 0.12); cursor: default; }
+
+// Lumen TV: zřetelné zvýraznění prvku vybraného ovladačem
+html.lumen-tv {
+    :focus { outline: none; }
+    :focus-visible, [tabindex]:focus, a:focus, button:focus, input:focus {
+        outline: 3px solid rgb(10, 132, 255) !important;
+        outline-offset: 2px;
+        box-shadow: 0 0 0 6px rgba(10, 132, 255, 0.35) !important;
+        border-radius: 0.6rem;
+    }
+
+    // Android WebView kreslí rozmazané pozadí (backdrop-filter) nad průhledným oknem jako černé pruhy
+    // a na slabších televizích zpomaluje; místo rozmazání jen o něco plnější výplň
+    * {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+
+    --glass-fill: rgba(255, 255, 255, 0.1);
+
+    // přehrávač obalu nastavuje body průhledné (video je pod stránkou); mimo přehrávač to přebijeme
+    &:not(.lumen-tv-player) body {
+        background:
+            radial-gradient(120% 90% at 85% -10%, rgba(10, 132, 255, 0.16) 0%, transparent 55%),
+            radial-gradient(90% 70% at 0% 110%, rgba(120, 90, 255, 0.14) 0%, transparent 60%),
+            linear-gradient(180deg, var(--primary-background-color) 0%, var(--secondary-background-color) 100%) !important;
+    }
+
+    // Android WebView nad nativním videem při přetáčení nechával „ducha“ lišty: velké stíny a průsvitné přechody pryč,
+    // lišta a nabídky dostanou vlastní vrstvu a plnou tmavou výplň.
+    [class*='player-container'] {
+        [class*='control-bar-layer'], [class*='menu-layer'], [class*='side-drawer-layer'], [class*='indicator-container'] [class*='indicator'] {
+            background: rgba(18, 19, 26, 0.88) !important;
+            box-shadow: none !important;
+            transform: translateZ(0);
+            will-change: opacity;
+        }
+        [class*='control-bar-buttons-container'] [class*='control-bar-button'] { transition: none !important; transform: none !important; }
+        [class*='seek-bar-container'] [class*='thumb'] { box-shadow: none !important; }
+    }
+
+    // vodorovné posuvníky (řazení v knihovně apod.) se ovládají šipkami, lišta posuvníku jen překáží
+    ::-webkit-scrollbar:horizontal { height: 0; }
+
+    // řazení v knihovně: na TV místo vodorovného posouvání zalomit do řádků, ať je vidět všechno
+    // (řady kategorií v Objevit ne: ty se posouvají samy ve svém řádku a stránka zůstane na místě)
+    [class*='selectable-inputs-container'] [class*='chips-']:not([class*='lumen-chips']) {
+        flex-wrap: wrap;
+        overflow: visible !important;
+    }
+}

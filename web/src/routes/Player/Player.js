@@ -7,6 +7,7 @@ const classnames = require('classnames');
 const debounce = require('lodash.debounce');
 const { useTranslation } = require('react-i18next');
 const { default: useRouteFocused } = require('stremio/common/useRouteFocused');
+const { isTvMode } = require('stremio/common/tvNavigation');
 const { useCore } = require('stremio/core');
 const { useServices, useGamepad } = require('stremio/services');
 const { useContentGamepadNavigation } = require('stremio/services/GamepadNavigation');
@@ -266,6 +267,10 @@ const Player = () => {
 
     const onError = React.useCallback((error) => {
         console.error('Player', error);
+        // Lumen: Android TV nemá torrentový server, torrent bez debridu tam přehrát nejde
+        if (isTvMode() && error.code === 2 && error.stream && (typeof error.stream.infoHash === 'string' || String(error.stream.url || '').startsWith('magnet:'))) {
+            error = { ...error, message: 'Torrenty na Android TV zatím nejdou. Vyberte zdroj přes debrid (přímý odkaz).' };
+        }
         if (error.critical) {
             setError(error);
         } else {

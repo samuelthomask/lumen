@@ -20,6 +20,8 @@ const LumenReleaseBanner = () => {
     const isMac = shellVersion.startsWith('lumen-macos');
     // osobní vydání se samo neaktualizuje (veřejný instalátor by ho přepsal veřejnou verzí)
     const isWin = shellVersion.startsWith('lumen ') && process.env.LUMEN_EDITION === 'public';
+    // Android TV se aktualizuje ručně (nové APK přes Downloader), odkaz na stránku vydání by na televizi nešel otevřít
+    const isAndroid = shellVersion.startsWith('lumen-android');
     const { release, visible, dismiss } = useLumenRelease(isMac ? 'mac' : isWin ? 'win' : null);
     const [progress, setProgress] = useState<Progress | null>(null);
 
@@ -66,7 +68,7 @@ const LumenReleaseBanner = () => {
     return (
         <UpdateBanner
             className={styles['web-update-banner']}
-            visible={(visible || (progress !== null && release !== null)) && isPlayer === null}
+            visible={(visible || (progress !== null && release !== null)) && isPlayer === null && !isAndroid}
             label={label}
             actionLabel={actionLabel}
             closeLabel={t('BUTTON_CLOSE')}

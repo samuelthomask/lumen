@@ -512,7 +512,10 @@
 .lumen-filters {
     position: relative;
     z-index: 60;
-    flex: none;
+    // šířka podle okna: dlouhá řada se posouvá sama v sobě, ne celá stránka
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 100%;
     align-self: stretch;
     display: flex;
     flex-direction: column;

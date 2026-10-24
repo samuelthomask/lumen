@@ -18,6 +18,7 @@ const { withCoreSuspender } = require('stremio/common/CoreSuspender');
 const useStreamingServer = require('stremio/common/useStreamingServer');
 const lumenProfiles = require('stremio/common/profiles');
 const { useLumenText } = require('stremio/common/lumenText');
+const { isTvMode } = require('stremio/common/tvNavigation');
 const styles = require('./styles');
 
 const NavMenuContent = ({ onClick }) => {
@@ -30,7 +31,9 @@ const NavMenuContent = ({ onClick }) => {
     const streamingServer = useStreamingServer();
     const { handlePlayUrl } = usePlayUrl();
     const toast = useToast();
-    const [fullscreen, requestFullscreen, exitFullscreen, , supported] = useFullscreen();
+    const [fullscreen, requestFullscreen, exitFullscreen, , fullscreenSupported] = useFullscreen();
+    // na televizi je aplikace vždy přes celou obrazovku
+    const supported = fullscreenSupported && !isTvMode();
     const [, isAndroidPWA] = usePWA();
     const install = useInstallPrompt();
     const streamingServerWarningDismissed = React.useMemo(() => {

@@ -10,6 +10,7 @@ const { useFullscreen } = require('stremio/common/Fullscreen');
 const { useHorizontalNavGamepadNavigation } = require('stremio/services/GamepadNavigation');
 const SearchBar = require('./SearchBar');
 const DensityControl = require('./DensityControl');
+const { isTvMode } = require('stremio/common/tvNavigation');
 
 const DENSITY_ROUTES = ['board', 'discover', 'library', 'search', 'continue_watching'];
 const NavMenu = require('./NavMenu');
@@ -20,7 +21,7 @@ const HorizontalNavBar = React.memo(({ className, route, query, title, backButto
     const backButtonOnClick = useGoBack(originPath);
     const [fullscreen, requestFullscreen, exitFullscreen, , supported] = useFullscreen();
     const renderNavMenuLabel = React.useCallback(({ ref, className, onClick, children, }) => (
-        <Button ref={ref} className={classnames(className, styles['button-container'], styles['menu-button-container'])} tabIndex={-1} onClick={onClick}>
+        <Button ref={ref} className={classnames(className, styles['button-container'], styles['menu-button-container'])} tabIndex={isTvMode() ? 0 : -1} onClick={onClick}>
             <Icon className={styles['icon']} name={'person-outline'} />
             {children}
         </Button>
@@ -70,7 +71,7 @@ const HorizontalNavBar = React.memo(({ className, route, query, title, backButto
                         null
                 }
                 {
-                    supported && fullscreenButton ?
+                    supported && fullscreenButton && !isTvMode() ?
                         <Button className={styles['button-container']} title={fullscreen ? t('EXIT_FULLSCREEN') : t('ENTER_FULLSCREEN')} tabIndex={-1} onClick={fullscreen ? exitFullscreen : requestFullscreen}>
                             <Icon className={styles['icon']} name={fullscreen ? 'minimize' : 'maximize'} />
                         </Button>

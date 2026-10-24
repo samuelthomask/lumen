@@ -7,6 +7,7 @@ import { Section, Option, Link } from '../components';
 // @ts-ignore
 import ProfilesSection from './ProfilesSection';
 import AccountSection from './AccountSection';
+import BundleSection from './BundleSection';
 import styles from './General.less';
 
 type Props = {
@@ -53,6 +54,7 @@ const General = forwardRef<HTMLDivElement, Props>(({ profile }: Props, ref) => {
         <Section>
             <ProfilesSection />
             <AccountSection />
+            <BundleSection profile={profile} />
         </Section>
 
         <Section>

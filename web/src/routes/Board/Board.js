@@ -11,6 +11,7 @@ const useContinueWatchingPreview = require('./useContinueWatchingPreview');
 const { default: useLiveTvContinueWatching } = require('./useLiveTvContinueWatching');
 const styles = require('./styles');
 const { default: StreamingServerWarning } = require('./StreamingServerWarning');
+const { isTvMode } = require('stremio/common/tvNavigation');
 const Hero = require('./Hero');
 
 const THRESHOLD = 5;
@@ -58,6 +59,8 @@ const Board = () => {
         (continueWatchingPreview.items.length > 0 ? 1 : 0) +
         (liveTvCatalog.items.length > 0 ? 1 : 0);
     const showStreamingServerWarning = React.useMemo(() => {
+        // Lumen: Android TV server nemá (hraje jen přímé odkazy), upozornění by tam jen překáželo
+        if (isTvMode()) return false;
         return streamingServer.settings !== null && streamingServer.settings.type === 'Err' && (
             isNaN(profile.settings.streamingServerWarningDismissed.getTime()) ||
             profile.settings.streamingServerWarningDismissed.getTime() < Date.now());

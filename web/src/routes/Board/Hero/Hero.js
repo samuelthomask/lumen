@@ -8,6 +8,7 @@ const { default: Icon } = require('@stremio/stremio-icons/react');
 const { Button } = require('stremio/components');
 const { default: getMetaDetailsHref } = require('stremio/common/getMetaDetailsHref');
 const { useLumenText } = require('stremio/common/lumenText');
+const { isTvMode } = require('stremio/common/tvNavigation');
 const { useTranslation } = require('react-i18next');
 const styles = require('./styles');
 
@@ -107,7 +108,7 @@ const Hero = ({ className, catalogs, selected, onResetSelection }) => {
                 {extras?.description ? <div className={styles['hero-description']}>{extras.description}</div> : null}
                 {
                     active.href ?
-                        <Button className={styles['hero-button']} href={active.href} tabIndex={-1}>
+                        <Button className={styles['hero-button']} href={active.href} tabIndex={isTvMode() ? 0 : -1}>
                             <Icon className={styles['hero-button-icon']} name={'play'} />
                             <div className={styles['hero-button-label']}>{lt('details')}</div>
                         </Button>

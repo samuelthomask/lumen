@@ -11,7 +11,7 @@ const avatarStyle = (color) => ({ background: `linear-gradient(145deg, ${color},
 
 const Modal = ({ title, children, onClose }) => ReactDOM.createPortal(
     <div className={styles['modal-backdrop']} onMouseDown={(event) => { if (event.target === event.currentTarget && onClose) onClose(); }}>
-        <div className={styles['modal']}>
+        <div className={styles['modal']} role={'dialog'} aria-modal={'true'}>
             <h2>{title}</h2>
             {children}
         </div>
@@ -112,7 +112,7 @@ const ProfilePicker = ({ onDone, onCancel }) => {
     };
 
     return ReactDOM.createPortal(
-        <div className={styles['picker']} onKeyDown={(event) => { if (event.key === 'Escape' && onCancel) onCancel(); }}>
+        <div className={styles['picker']} role={'dialog'} aria-modal={'true'} onKeyDown={(event) => { if (event.key === 'Escape' && onCancel) onCancel(); }}>
             <div className={styles['title']}>{managing ? text('manageProfiles') : text('whoWatching')}</div>
             <div className={styles['row']}>
                 {list.map((profile) => (

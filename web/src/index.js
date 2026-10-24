@@ -11,6 +11,8 @@ const browser = Bowser.parse(window.navigator?.userAgent || '');
 if (browser?.platform?.type === 'desktop') {
     document.querySelector('meta[name="viewport"]')?.setAttribute('content', '');
 }
+// Lumen: ovládání ovladačem na Android TV (jen v obalu pro TV)
+require('stremio/common/tvNavigation');
 
 const React = require('react');
 const ReactDOM = require('react-dom/client');

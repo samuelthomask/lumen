@@ -16,7 +16,7 @@ function Glow($cx, $cy, $rx, $ry, $a, $r, $gr, $b) {
 Glow 260 120 700 420 120 10 132 255
 Glow 1100 600 760 380 90 120 70 230
 
-$res = "E:\mpc-be-titulky\stremio-mod\installer\res"
+$res = "E:\Claude\mpc-be-titulky\stremio-mod\installer\res"
 $pfc = New-Object System.Drawing.Text.PrivateFontCollection
 $pfc.AddFontFile("$res\Inter-Regular.ttf"); $pfc.AddFontFile("$res\Inter-SemiBold.ttf")
 $semi = $pfc.Families | Where-Object { $_.Name -like '*Semi*' } | Select-Object -First 1
@@ -40,7 +40,7 @@ $g.FillPath((New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromA
 $g.DrawPath((New-Object System.Drawing.Pen ([System.Drawing.Color]::FromArgb(48, 255, 255, 255)), 2), $card)
 
 # icon
-$ico = [System.Drawing.Image]::FromFile("E:\mpc-be-titulky\stremio-mod\stremio-web\assets\images\icon_512x512.png")
+$ico = [System.Drawing.Image]::FromFile("E:\Claude\mpc-be-titulky\stremio-mod\stremio-web\assets\images\icon_512x512.png")
 $g.DrawImage($ico, 130, 150, 190, 190)
 
 Txt 'Lumen' $semi 150 340 120 ([System.Drawing.Color]::FromArgb(255, 255, 255, 255))
