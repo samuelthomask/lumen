@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 const { LUMEN_VERSION, LUMEN_REPO } = require('stremio/common/lumenVersion');
 
-type Platform = 'mac' | 'win' | null;
-type Release = { version: string, pageUrl: string, dmgUrl: string | null, exeUrl: string | null, exeSha: string | null };
+type Platform = 'mac' | 'win' | 'android' | null;
+type Release = {
+    version: string, pageUrl: string, dmgUrl: string | null, exeUrl: string | null, exeSha: string | null,
+    apkUrl: string | null, apkSha: string | null,
+};
 
 const CHECK_EVERY = 60 * 60 * 1000;
 const MIN_GAP_ON_FOCUS = 10 * 60 * 1000;
@@ -18,19 +21,24 @@ const isNewer = (a: string, b: string) => {
     return false;
 };
 
-// Verze pro každý systém vychází zvlášť (macOS .dmg, Windows Lumen-Setup.exe), proto se hledá nejnovější vydání,
-// které má soubor pro tento systém. Instalátor pro Windows se stahuje jen s SHA-256 z GitHubu, jinak ho obal odmítne.
+// Verze pro každý systém vychází zvlášť (macOS .dmg, Windows Lumen-Setup.exe, Android TV Lumen-AndroidTV.apk), proto se
+// hledá nejnovější vydání, které má soubor pro tento systém. Instalátor pro Windows se stahuje jen s SHA-256 z GitHubu,
+// jinak ho obal odmítne; APK obal ověří, když SHA-256 je (Android navíc vyžaduje stejný podpisový klíč).
+const sha256 = (asset: any) => asset && typeof asset.digest === 'string' && asset.digest.startsWith('sha256:') ? asset.digest.slice(7).toLowerCase() : null;
 const toRelease = (data: any): Release => {
     const assets: any[] = data.assets || [];
     const dmg = assets.find((a) => /\.dmg$/i.test(a.name));
     const exe = assets.find((a) => a.name === 'Lumen-Setup.exe');
-    const sha = exe && typeof exe.digest === 'string' && exe.digest.startsWith('sha256:') ? exe.digest.slice(7).toLowerCase() : null;
+    const apk = assets.find((a) => a.name === 'Lumen-AndroidTV.apk');
+    const sha = sha256(exe);
     return {
         version: String(data.tag_name || '').replace(/^v/i, ''),
         pageUrl: data.html_url,
         dmgUrl: dmg ? dmg.browser_download_url : null,
         exeUrl: exe && sha ? exe.browser_download_url : null,
         exeSha: sha,
+        apkUrl: apk ? apk.browser_download_url : null,
+        apkSha: sha256(apk),
     };
 };
 
@@ -57,6 +65,7 @@ const useLumenRelease = (platform: Platform) => {
                     if (!candidate.version || !/^\d+(\.\d+)*$/.test(candidate.version)) continue;
                     if (platform === 'mac' && !candidate.dmgUrl) continue;
                     if (platform === 'win' && !candidate.exeUrl) continue;
+                    if (platform === 'android' && !candidate.apkUrl) continue;
                     if (!best || isNewer(candidate.version, best.version)) best = candidate;
                 }
                 if (cancelled || !best || !isNewer(best.version, LUMEN_VERSION)) return;

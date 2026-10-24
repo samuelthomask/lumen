@@ -756,6 +756,11 @@ html.lumen-tv {
         box-shadow: 0 0 0 6px rgba(10, 132, 255, 0.35) !important;
         border-radius: 0.6rem;
     }
+    // lišta s novou verzí je modrá, modrý rámeček by na ní nebyl vidět
+    [class*='web-update-banner'] [tabindex]:focus {
+        outline-color: #fff !important;
+        box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.35) !important;
+    }
 
     // Android WebView kreslí rozmazané pozadí (backdrop-filter) nad průhledným oknem jako černé pruhy
     // a na slabších televizích zpomaluje; místo rozmazání jen o něco plnější výplň

@@ -42,6 +42,7 @@ class MainActivity : Activity() {
     private var fullscreen = false
     private var lastBackPress = 0L
     private var fileCallback: ValueCallback<Array<Uri>>? = null
+    private val updater = Updater(this) { data -> sendSignal("lumen-update-status", data) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -247,6 +248,7 @@ class MainActivity : Activity() {
                         fullscreen = it.optBoolean("fullscreen", fullscreen)   // na televizi je okno vždy přes celou obrazovku
                         sendVisibility()
                     }
+                    "lumen-update" -> updater.start(arg1 as? String ?: return, if (args.length() > 2) args.optString(2) else "")
                     "quit" -> finish()
                     else -> Unit   // app-ready, media.*, discord-* … ignorujeme
                 }
@@ -283,6 +285,12 @@ class MainActivity : Activity() {
                 Toast.makeText(this, R.string.exit_hint, Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    // výsledek instalace aktualizace (PackageInstaller ho posílá sem, aktivita je singleTask)
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.action == Updater.ACTION_STATUS) updater.onStatus(intent)
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {

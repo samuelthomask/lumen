@@ -178,6 +178,9 @@ const DICT = {
     lumenWhatsNew: { cs: 'Zobrazit', en: 'View' },
     lumenDownloading: { cs: 'Stahuji verzi', en: 'Downloading version' },
     lumenUpdateFailed: { cs: 'Aktualizace se nepovedla. Stáhněte novou verzi ručně.', en: 'The update failed. Please download the new version manually.' },
+    lumenInstallingTV: { cs: 'Potvrďte instalaci v okně, které se otevřelo', en: 'Confirm the installation in the window that opened' },
+    lumenUpdatePermissionTV: { cs: 'Povolte Lumenu instalovat aplikace, vraťte se zpět a dejte Aktualizovat', en: 'Allow Lumen to install apps, go back and press Update' },
+    lumenUpdateFailedTV: { cs: 'Aktualizace se nepovedla. Zkuste to znovu, nebo ji nainstalujte přes Downloader (kód 8216339).', en: 'The update failed. Try again, or install it with Downloader (code 8216339).' },
     reloadUi: { cs: 'Načíst znovu', en: 'Reload' },
     // nápověda
     helpTab: { cs: 'Nápověda', en: 'Help' }
