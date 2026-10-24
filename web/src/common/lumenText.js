@@ -30,10 +30,8 @@ const DICT = {
     // preference zdrojů
     prefLanguage: { cs: 'Jazyk', en: 'Language' },
     prefQuality: { cs: 'Kvalita', en: 'Quality' },
-    langCsSubs: { cs: 'České titulky', en: 'Czech subtitles' },
-    langCsAudio: { cs: 'Česká zvuková stopa', en: 'Czech audio' },
-    langEnSubs: { cs: 'Anglické titulky', en: 'English subtitles' },
-    langEnAudio: { cs: 'Anglická zvuková stopa', en: 'English audio' },
+    czOnly: { cs: 'Jen CZ', en: 'Czech only' },
+    czHint: { cs: 'Česky poznáš podle 🇨🇿 nebo CZ v názvu zdroje', en: 'Czech sources show 🇨🇿 or CZ in their name' },
     q4k: { cs: '4K', en: '4K' },
     qFullHd: { cs: 'Full HD', en: 'Full HD' },
     qLower: { cs: 'Méně', en: 'Lower' },

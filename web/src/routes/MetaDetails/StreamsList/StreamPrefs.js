@@ -1,5 +1,5 @@
-// Lumen: zaškrtávátka preferencí zdrojů (jazyk, kvalita) přímo nad seznamem zdrojů.
-// Jde zaškrtnout libovolná kombinace; nic nezaškrtnuto v řádku = ten řádek nefiltruje.
+// Lumen: zaškrtávátka kvality zdrojů přímo nad seznamem zdrojů.
+// Jde zaškrtnout libovolná kombinace; nic nezaškrtnuto = bez filtru.
 
 const React = require('react');
 const PropTypes = require('prop-types');
@@ -7,12 +7,6 @@ const classnames = require('classnames');
 const { usePrefs } = require('stremio/common/streamPrefs');
 const { useLumenText } = require('stremio/common/lumenText');
 
-const LANGUAGE_OPTIONS = [
-    { value: 'csSubs', labelKey: 'langCsSubs' },
-    { value: 'csAudio', labelKey: 'langCsAudio' },
-    { value: 'enSubs', labelKey: 'langEnSubs' },
-    { value: 'enAudio', labelKey: 'langEnAudio' }
-];
 const QUALITY_OPTIONS = [
     { value: 2160, labelKey: 'q4k' },
     { value: 1080, labelKey: 'qFullHd' },
@@ -34,14 +28,13 @@ const StreamPrefs = ({ hidden }) => {
         <div className={'lumen-stream-prefs'}>
             <div className={'lumen-pref-row'}>
                 <div className={'lumen-pref-label'}>{lt('prefLanguage')}</div>
-                {LANGUAGE_OPTIONS.map(({ value, labelKey }) => (
-                    <button key={value} type={'button'} tabIndex={-1} role={'checkbox'} aria-checked={prefs.languages.includes(value)}
-                        className={classnames('lumen-pref-chip', { 'selected': prefs.languages.includes(value) })}
-                        onClick={() => setPrefs({ languages: toggle(prefs.languages, value) })}>
-                        {prefs.languages.includes(value) ? <Check /> : null}
-                        {lt(labelKey)}
-                    </button>
-                ))}
+                <button type={'button'} tabIndex={-1} role={'checkbox'} aria-checked={prefs.czOnly}
+                    className={classnames('lumen-pref-chip', { 'selected': prefs.czOnly })}
+                    onClick={() => setPrefs({ czOnly: !prefs.czOnly })}>
+                    {prefs.czOnly ? <Check /> : null}
+                    {lt('czOnly')}
+                </button>
+                <div className={'lumen-pref-hidden'}>{lt('czHint')}</div>
             </div>
             <div className={'lumen-pref-row'}>
                 <div className={'lumen-pref-label'}>{lt('prefQuality')}</div>
