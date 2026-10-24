@@ -16,10 +16,13 @@
 #include <mpv/client.h>
 
 #include <atomic>
+#include <chrono>
 #include <cmath>
+#include <condition_variable>
 #include <cstdio>
 #include <cstdlib>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <thread>
 #include <utility>
@@ -767,6 +770,186 @@ static bool initMpv() {
     return true;
 }
 
+// ---------- Discord (aktivita „sleduje“ přes lokální IPC Discordu) ----------
+// Web posílá discord-connect / discord-disconnect / discord-set-activity / discord-clear-activity a čeká na signál
+// discord-status {connected}. Discord desktop poslouchá na rouře \\.\pipe\discord-ipc-0..9; zpráva = [op:int32][délka:int32][JSON].
+// Všechno běží v jednom vlákně; web jen nastaví, co chce, a vlákno to dožene (i po restartu Discordu pošle poslední aktivitu znovu).
+
+static const char* kDiscordClientId = "1563610052621901894";   // Application ID aplikace „Lumen“ z discord.com/developers
+static std::mutex g_discordMu;
+static std::condition_variable g_discordCv;
+static bool g_discordWant = false;          // web chce být připojený
+static bool g_discordConnectAsked = false;  // web čeká na odpověď discord-status
+static std::string g_discordActivity;       // hotový JSON aktivity, prázdné = žádná
+static bool g_discordDirty = false;
+static bool g_discordThread = false;
+
+static std::string discordClientId() {
+    if (const char* e = getenv("LUMEN_DISCORD_CLIENT_ID")) if (*e) return e;
+    return kDiscordClientId;
+}
+
+static bool discordWrite(HANDLE pipe, int op, const std::string& json) {
+    std::string frame(8, '\0');
+    int32_t hdr[2] = { op, (int32_t)json.size() };
+    memcpy(&frame[0], hdr, 8);
+    frame += json;
+    DWORD written = 0;
+    return WriteFile(pipe, frame.data(), (DWORD)frame.size(), &written, nullptr) && written == frame.size();
+}
+
+// Přečte jednu odpověď (čeká nejvýš timeoutMs). Vrací false při chybě nebo zavřené rouře.
+static bool discordRead(HANDLE pipe, int& op, std::string& json, DWORD timeoutMs) {
+    ULONGLONG deadline = GetTickCount64() + timeoutMs;
+    DWORD avail = 0;
+    for (;;) {
+        if (!PeekNamedPipe(pipe, nullptr, 0, nullptr, &avail, nullptr)) return false;
+        if (avail >= 8) break;
+        if (GetTickCount64() > deadline) return false;
+        Sleep(20);
+    }
+    int32_t hdr[2]; DWORD got = 0;
+    if (!ReadFile(pipe, hdr, 8, &got, nullptr) || got != 8 || hdr[1] < 0 || hdr[1] > (1 << 20)) return false;
+    op = hdr[0];
+    json.assign(hdr[1], '\0');
+    DWORD off = 0;
+    while (off < (DWORD)hdr[1]) {
+        if (!ReadFile(pipe, &json[off], hdr[1] - off, &got, nullptr) || !got) return false;
+        off += got;
+    }
+    return true;
+}
+
+static HANDLE discordOpen() {
+    std::string id = discordClientId();
+    if (id.empty() || id == "DISCORD_CLIENT_ID") { logf("DISCORD no client id"); return INVALID_HANDLE_VALUE; }
+    for (int n = 0; n < 10; n++) {
+        std::wstring name = L"\\\\.\\pipe\\discord-ipc-" + std::to_wstring(n);
+        HANDLE pipe = CreateFileW(name.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr);
+        if (pipe == INVALID_HANDLE_VALUE) continue;
+        std::string hello = "{\"v\":1,\"client_id\":";
+        jsonEscape(hello, id.c_str());
+        hello += "}";
+        int op = 0; std::string reply;
+        if (discordWrite(pipe, 0, hello) && discordRead(pipe, op, reply, 3000) && op == 1 && reply.find("\"READY\"") != std::string::npos) {
+            logf("DISCORD connected (pipe %d)", n);
+            return pipe;
+        }
+        logf("DISCORD handshake failed on pipe %d: %.200s", n, reply.c_str());
+        CloseHandle(pipe);
+    }
+    return INVALID_HANDLE_VALUE;
+}
+
+static bool discordSend(HANDLE pipe, const std::string& activity) {
+    static unsigned nonce = 0;
+    std::string cmd = "{\"cmd\":\"SET_ACTIVITY\",\"args\":{\"pid\":" + std::to_string(GetCurrentProcessId()) +
+        ",\"activity\":" + (activity.empty() ? "null" : activity) + "},\"nonce\":\"" + std::to_string(++nonce) + "\"}";
+    int op = 0; std::string reply;
+    if (!discordWrite(pipe, 1, cmd) || !discordRead(pipe, op, reply, 3000)) return false;
+    if (reply.find("\"ERROR\"") != std::string::npos) logf("DISCORD activity rejected: %.300s", reply.c_str());
+    return op == 1;
+}
+
+static void discordStatus(bool connected) {
+    postSignal("discord-status", connected ? "{\"connected\":true}" : "{\"connected\":false}");
+}
+
+static void discordWorker() {
+    HANDLE pipe = INVALID_HANDLE_VALUE;
+    for (;;) {
+        bool want, asked, dirty; std::string activity;
+        {
+            std::unique_lock<std::mutex> lock(g_discordMu);
+            g_discordCv.wait_for(lock, std::chrono::seconds(5));
+            if (g_quit) break;
+            want = g_discordWant; asked = g_discordConnectAsked; dirty = g_discordDirty; activity = g_discordActivity;
+            g_discordConnectAsked = false; g_discordDirty = false;
+        }
+        // Discord mezitím zavřený?
+        if (pipe != INVALID_HANDLE_VALUE) {
+            DWORD avail = 0;
+            if (!PeekNamedPipe(pipe, nullptr, 0, nullptr, &avail, nullptr)) {
+                logf("DISCORD pipe closed");
+                CloseHandle(pipe); pipe = INVALID_HANDLE_VALUE;
+                discordStatus(false);
+            }
+        }
+        if (!want) {
+            if (pipe != INVALID_HANDLE_VALUE) {
+                discordSend(pipe, "");
+                discordWrite(pipe, 2, "{}");
+                CloseHandle(pipe); pipe = INVALID_HANDLE_VALUE;
+                discordStatus(false);
+            }
+            continue;
+        }
+        if (pipe == INVALID_HANDLE_VALUE) {
+            if (!asked) continue;   // připojujeme se jen na žádost webu (zkouší to každých 15 s)
+            pipe = discordOpen();
+            discordStatus(pipe != INVALID_HANDLE_VALUE);
+            if (pipe == INVALID_HANDLE_VALUE) continue;
+            dirty = true;           // po (znovu)připojení pošleme poslední aktivitu
+        } else if (asked) {
+            discordStatus(true);
+        }
+        if (dirty && !discordSend(pipe, activity)) {
+            logf("DISCORD send failed");
+            CloseHandle(pipe); pipe = INVALID_HANDLE_VALUE;
+            discordStatus(false);
+            std::lock_guard<std::mutex> lock(g_discordMu);
+            g_discordDirty = true;
+        }
+    }
+    if (pipe != INVALID_HANDLE_VALUE) { discordSend(pipe, ""); CloseHandle(pipe); }
+}
+
+// Discord bere u textů 2–128 bajtů; zkrátí na hranici znaku UTF-8.
+static std::string discordText(const std::string& s) {
+    std::string t = s;
+    if (t.size() > 128) {
+        size_t cut = 125;
+        while (cut > 0 && ((unsigned char)t[cut] & 0xC0) == 0x80) cut--;
+        t = t.substr(0, cut) + "...";
+    }
+    if (t.size() < 2) t += "  ";
+    return t;
+}
+
+static std::string discordActivityJson(const Json& a) {
+    auto str = [&](const char* k) { const Json* v = a.get(k); return v && v->type == Json::Str ? v->s : std::string(); };
+    auto num = [&](const char* k) { const Json* v = a.get(k); return v && v->type == Json::Num && v->n > 0 ? (long long)v->n : 0LL; };
+    std::string state = str("state"), details = str("details"), image = str("image");
+    std::string j = "{\"type\":3";   // 3 = „Sleduje“
+    if (!details.empty()) { j += ",\"details\":"; jsonEscape(j, discordText(details).c_str()); }
+    if (!state.empty()) { j += ",\"state\":"; jsonEscape(j, discordText(state).c_str()); }
+    long long start = num("startTimestamp"), end = num("endTimestamp");
+    if (start || end) {
+        j += ",\"timestamps\":{";
+        if (start) j += "\"start\":" + std::to_string(start);
+        if (end) j += std::string(start ? "," : "") + "\"end\":" + std::to_string(end);
+        j += "}";
+    }
+    j += ",\"assets\":{\"large_image\":";
+    // plakát z addonu (Discord umí https adresy); jinak ikona nahraná u aplikace pod názvem „lumen“
+    jsonEscape(j, image.rfind("https://", 0) == 0 && image.size() <= 256 ? image.c_str() : "lumen");
+    j += ",\"large_text\":";
+    jsonEscape(j, discordText(details.empty() ? "Lumen" : details).c_str());
+    j += "}}";
+    return j;
+}
+
+static void discordCommand(const std::string& method, const Json* arg) {
+    std::lock_guard<std::mutex> lock(g_discordMu);
+    if (!g_discordThread) { g_discordThread = true; std::thread(discordWorker).detach(); }
+    if (method == "discord-connect") { g_discordWant = true; g_discordConnectAsked = true; }
+    else if (method == "discord-disconnect") { g_discordWant = false; g_discordActivity.clear(); }
+    else if (method == "discord-clear-activity") { g_discordActivity.clear(); g_discordDirty = true; }
+    else if (method == "discord-set-activity" && arg && arg->type == Json::Obj) { g_discordActivity = discordActivityJson(*arg); g_discordDirty = true; }
+    else return;
+    g_discordCv.notify_one();
+}
+
 // ---------- Aktualizace z aplikace ----------
 // Web zjistí novou verzi na GitHubu a pošle adresu instalátoru a jeho SHA-256. Obal ho stáhne, ověří otisk, spustí
 // potichu (/S /UPDATE) do složky, ze které běží, a skončí; instalátor přepíše soubory a Lumen znovu spustí.
@@ -774,7 +957,7 @@ static bool initMpv() {
 #pragma comment(lib, "urlmon.lib")
 #pragma comment(lib, "bcrypt.lib")
 
-static const char* LUMEN_VERSION = "1.3.1";   // držet shodně s installer\setup.cpp a setup.rc
+static const char* LUMEN_VERSION = "2.0.0";   // držet shodně s installer\setup.cpp a setup.rc
 static std::atomic<bool> g_updating{false};
 static std::wstring exeDir();
 
@@ -933,10 +1116,12 @@ static void handleWebMessage(const std::string& text) {
         const std::string url = arg1->s, sha = args->a[2].s;
         if (!validUpdateRequest(url, sha)) updateStatus("error", 0, "invalid");
         else if (!g_updating.exchange(true)) std::thread(updateWorker, url, sha).detach();
+    } else if (method.rfind("discord-", 0) == 0) {
+        discordCommand(method, arg1);
     } else if (method == "quit") {
         PostMessageW(g_main, WM_CLOSE, 0, 0);
     }
-    // ostatní (app-ready, media.*, discord-*, mpv-set-gpu-video-processing...) zatím ignorujeme
+    // ostatní (app-ready, media.*, mpv-set-gpu-video-processing...) zatím ignorujeme
 }
 
 // ---------- Okno ----------

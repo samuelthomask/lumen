@@ -6,7 +6,7 @@ cd "$(dirname "$0")"
 WEB_BUILD="${WEB_BUILD:-../web/build}"              # sestavené rozhraní (pnpm build), nebo rozbalený lumen-web-build.zip
 TORRENT_DIR="${TORRENT_DIR:-../torrent-server}"     # server.js + package.json
 ICON_PNG="${ICON_PNG:-../web/assets/images/icon_512x512.png}"
-VERSION="${VERSION:-1.3.1}"
+VERSION="${VERSION:-2.0.0}"
 OUT="dist"
 APP="$OUT/Lumen.app"
 

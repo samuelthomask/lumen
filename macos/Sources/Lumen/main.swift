@@ -343,6 +343,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
     var webView: WKWebView!
     let videoView = MpvVideoView()
     let player = Player()
+    lazy var discord = DiscordPresence { [weak self] connected in self?.sendSignal("discord-status", ["connected": connected]) }
     let server = LocalServer()
     var fullscreen = false
 
@@ -473,7 +474,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         if type == 3 {   // INIT: vlastnosti obalu
             func prop(_ name: String, _ value: String) -> [Any] { [0, name, 0, value] }
             send(["id": 0, "type": 3, "data": ["transport": ["properties": [
-                prop("shellVersion", "lumen-macos 1.3.1"),
+                prop("shellVersion", "lumen-macos 2.0.0"),
                 prop("streamingServerUrl", "http://127.0.0.1:\(serverPort)/"),
                 prop("gpuVideoProcessing", "false"),
                 prop("nativeAssSubtitles", "false"),
@@ -498,10 +499,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
             if let d = arg1 as? [String: Any], let want = d["fullscreen"] as? Bool, want != fullscreen { window.toggleFullScreen(nil) }
         case "lumen-update":
             if let link = arg1 as? String { downloadUpdate(link) }
+        case "discord-connect", "discord-disconnect", "discord-set-activity", "discord-clear-activity":
+            discord.handle(method, arg1)
         case "quit":
             NSApp.terminate(nil)
         default:
-            break   // app-ready, media.*, discord-* a další zatím ignorujeme
+            break   // app-ready, media.* a další zatím ignorujeme
         }
     }
 
