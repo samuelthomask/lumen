@@ -5,7 +5,7 @@ const classnames = require('classnames');
 const useTranslate = require('stremio/common/useTranslate');
 const { default: useVisibleCatalogs } = require('stremio/common/useVisibleCatalogs');
 const { useStreamingServer, useNotifications, withCoreSuspender, useProfile } = require('stremio/common');
-const { ContinueWatchingItem, EventModal, LiveTvContinueWatchingItem, MainNavBars, MetaItem, MetaRow } = require('stremio/components');
+const { ContinueWatchingItem, LiveTvContinueWatchingItem, MainNavBars, MetaItem, MetaRow } = require('stremio/components');
 const useBoard = require('./useBoard');
 const useContinueWatchingPreview = require('./useContinueWatchingPreview');
 const { default: useLiveTvContinueWatching } = require('./useLiveTvContinueWatching');
@@ -110,7 +110,6 @@ const Board = () => {
     }, [tonightLoading, continueWatchingPreview.items, selection, lt]);
     return (
         <div className={styles['board-container']}>
-            <EventModal />
             <div ref={backdropRef} className={styles['board-backdrop']}>
                 {backdrop ? <img key={backdrop} className={styles['board-backdrop-image']} src={backdrop} alt={' '} /> : null}
             </div>

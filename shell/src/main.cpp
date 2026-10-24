@@ -957,7 +957,7 @@ static void discordCommand(const std::string& method, const Json* arg) {
 #pragma comment(lib, "urlmon.lib")
 #pragma comment(lib, "bcrypt.lib")
 
-static const char* LUMEN_VERSION = "2.1.1";   // držet shodně s installer\setup.cpp a setup.rc
+static const char* LUMEN_VERSION = "2.1.2";   // držet shodně s installer\setup.cpp a setup.rc
 static std::atomic<bool> g_updating{false};
 static std::wstring exeDir();
 
@@ -1380,10 +1380,17 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR cmdline, int show) {
     vc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
     RegisterClassW(&vc);
 
+    // Okno 16:9 uprostřed pracovní plochy hlavního monitoru: 80 % šířky, nejvýš 85 % výšky
+    RECT work{};
+    SystemParametersInfoW(SPI_GETWORKAREA, 0, &work, 0);
+    int workW = work.right - work.left, workH = work.bottom - work.top;
+    int winW = workW * 80 / 100, winH = winW * 9 / 16;
+    if (winH > workH * 85 / 100) { winH = workH * 85 / 100; winW = winH * 16 / 9; }
+    if (getenv("STREMIO_MOD_W")) winW = atoi(getenv("STREMIO_MOD_W"));
+    if (getenv("STREMIO_MOD_H")) winH = atoi(getenv("STREMIO_MOD_H"));
     g_main = CreateWindowExW(0, L"StremioModMain", L"Lumen", WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN,
-                             CW_USEDEFAULT, CW_USEDEFAULT,
-                             getenv("STREMIO_MOD_W") ? atoi(getenv("STREMIO_MOD_W")) : 1280,
-                             getenv("STREMIO_MOD_H") ? atoi(getenv("STREMIO_MOD_H")) : 720, nullptr, nullptr, inst, nullptr);
+                             work.left + (workW - winW) / 2, work.top + (workH - winH) / 2,
+                             winW, winH, nullptr, nullptr, inst, nullptr);
     g_video = CreateWindowExW(0, L"StremioModVideo", L"", WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS,
                               0, 0, 1280, 720, g_main, nullptr, inst, nullptr);
 
