@@ -474,7 +474,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         if type == 3 {   // INIT: vlastnosti obalu
             func prop(_ name: String, _ value: String) -> [Any] { [0, name, 0, value] }
             send(["id": 0, "type": 3, "data": ["transport": ["properties": [
-                prop("shellVersion", "lumen-macos 2.0.0"),
+                prop("shellVersion", "lumen-macos 2.1.0"),
                 prop("streamingServerUrl", "http://127.0.0.1:\(serverPort)/"),
                 prop("gpuVideoProcessing", "false"),
                 prop("nativeAssSubtitles", "false"),

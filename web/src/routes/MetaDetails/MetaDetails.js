@@ -17,6 +17,7 @@ const useMetaDetails = require('./useMetaDetails');
 const useSeason = require('./useSeason');
 const { default: useExternalPlayerCallback } = require('./useExternalPlayerCallback');
 const styles = require('./styles');
+const { useAmbientImage } = require('stremio/common/lumenTheme');
 
 const GAMEPAD_HANDLER_ID = 'metadetails';
 
@@ -136,6 +137,8 @@ const MetaDetails = () => {
         typeof metaDetails.metaItem.content.content?.background === 'string' &&
         metaDetails.metaItem.content.content.background.length > 0
     ), [metaPath, metaDetails]);
+    // Lumen: nádech rozhraní podle obrázku titulu
+    useAmbientImage(renderBackground ? metaDetails.metaItem.content.content.background : null);
     const originPath = React.useMemo(() => getStoredOrigin(), [getStoredOrigin]);
     useContentGamepadNavigation(contentRef, GAMEPAD_HANDLER_ID);
     if (type === 'tv' && (metaDetails.selected === null || (isEpgProvider && metaDetails.metaItem?.content.type === 'Loading'))) {

@@ -17,9 +17,20 @@ const { default: ShortcutsModal } = require('./ShortcutsModal');
 const { default: GamepadModal } = require('./GamepadModal');
 const { default: useInterfaceScale } = require('./useInterfaceScale');
 const styles = require('./styles');
+require('stremio/common/lumenTheme');   // Lumen: použije téma profilu hned při startu
 
 const ProtectedRoutes = withCoreSuspender(Routes);
 const NAVIGATE_TABS_ROUTES = ['/', '/discover', '/library', '/addons', '/settings', '/help'];
+// Lumen: výchozí addony jádra, které v Lumenu nemají smysl (YouTube, WatchHub, Public Domain Movies, Local Files – ten
+// potřebuje server Stremia). Odeberou se jednou za profil; kdo si je pak nainstaluje sám, tomu zůstanou.
+const UNWANTED_DEFAULT_ADDONS = [
+    'https://v3-channels.strem.io/manifest.json',
+    'https://watchhub.strem.io/manifest.json',
+    'https://caching.stremio.net/publicdomainmovies.now.sh/manifest.json',
+    'http://127.0.0.1:11470/local-addon/manifest.json'
+];
+// klíč nezačíná "lumen.", takže patří k aktivnímu profilu
+const DEFAULTS_CLEANED_KEY = 'lumenDefaultAddonsCleaned';
 
 const App = () => {
     const core = useCore();
@@ -40,6 +51,19 @@ const App = () => {
     }, []);
     const [shortcutModalOpen,, closeShortcutsModal, toggleShortcutModal] = useBinaryState(false);
     const [gamepadModalOpen,, closeGamepadModal, toggleGamepadModal] = useBinaryState(false);
+
+    React.useEffect(() => {
+        if (!Array.isArray(profile.addons) || profile.addons.length === 0) return;
+        try {
+            if (window.localStorage.getItem(DEFAULTS_CLEANED_KEY) === '1') return;
+            window.localStorage.setItem(DEFAULTS_CLEANED_KEY, '1');
+        } catch (_) {
+            return;
+        }
+        profile.addons
+            .filter((addon) => !addon.flags?.protected && UNWANTED_DEFAULT_ADDONS.includes(addon.transportUrl))
+            .forEach((addon) => core.transport.dispatch({ action: 'Ctx', args: { action: 'UninstallAddon', args: addon } }));
+    }, [profile.addons]);
 
     const onShortcut = React.useCallback((name, combo, key) => {
         switch (name) {

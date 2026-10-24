@@ -13,6 +13,9 @@ const styles = require('./styles');
 const { default: StreamingServerWarning } = require('./StreamingServerWarning');
 const { isTvMode } = require('stremio/common/tvNavigation');
 const Hero = require('./Hero');
+const pickTonight = require('./Hero/tonight');
+const { useLumenText } = require('stremio/common/lumenText');
+const { useAmbientImage } = require('stremio/common/lumenTheme');
 
 const THRESHOLD = 5;
 
@@ -35,6 +38,11 @@ const toWide = (item) => ({ ...item, poster: Hero.backgroundFor(item.poster) ?? 
 
 const Board = () => {
     const [selectedItem, setSelectedItem] = React.useState(null);
+    const [backdrop, setBackdrop] = React.useState(null);
+    const [tonightLoading, setTonightLoading] = React.useState(false);
+    const backdropRef = React.useRef(null);
+    const lt = useLumenText();
+    useAmbientImage(backdrop);
     const t = useTranslate();
     const streamingServer = useStreamingServer();
     const continueWatchingPreview = useContinueWatchingPreview();
@@ -80,13 +88,37 @@ const Board = () => {
             }
         }
     }), [selectedItem, scrollContainerRef]);
+    // Lumen „Kino“: obrázek za oknem při posouvání dolů pomalu mizí
+    const onBoardScroll = React.useCallback((event) => {
+        onScroll(event);
+        if (backdropRef.current) {
+            const top = event.currentTarget.scrollTop;
+            backdropRef.current.style.opacity = String(Math.max(0, 1 - top / (window.innerHeight * 0.6)));
+            backdropRef.current.style.transform = `translateY(${-top * 0.25}px)`;
+        }
+    }, [onScroll]);
+    // Lumen: „Co dnes?“ vybere film a ukáže ho v úvodu jako vybraný titul
+    const onTonight = React.useCallback(() => {
+        if (tonightLoading) return;
+        setTonightLoading(true);
+        pickTonight(continueWatchingPreview.items)
+            .then((pick) => {
+                if (pick) selection.select(pick);
+                else window.alert(lt('tonightFailed'));
+            })
+            .finally(() => setTonightLoading(false));
+    }, [tonightLoading, continueWatchingPreview.items, selection, lt]);
     return (
         <div className={styles['board-container']}>
             <EventModal />
+            <div ref={backdropRef} className={styles['board-backdrop']}>
+                {backdrop ? <img key={backdrop} className={styles['board-backdrop-image']} src={backdrop} alt={' '} /> : null}
+            </div>
             <SelectionContext.Provider value={selection}>
             <MainNavBars className={styles['board-content-container']} route={'board'}>
-                <div ref={scrollContainerRef} className={styles['board-content']} onScroll={onScroll}>
-                    <Hero catalogs={board.catalogs} selected={selectedItem} onResetSelection={() => setSelectedItem(null)} />
+                <div ref={scrollContainerRef} className={styles['board-content']} onScroll={onBoardScroll}>
+                    <Hero catalogs={board.catalogs} selected={selectedItem} onResetSelection={() => setSelectedItem(null)}
+                        onImage={setBackdrop} onTonight={onTonight} tonightLoading={tonightLoading} />
                     {
                         continueWatchingPreview.items.length > 0 ?
                             <MetaRow

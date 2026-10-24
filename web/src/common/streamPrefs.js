@@ -1,26 +1,30 @@
 // Lumen: preference zdrojů (stream) – jazyk a kvalita. Platí pro výsledky jakéhokoli addonu:
-// řadí je podle toho, co se v názvu/popisu pozná (české dabing/titulky, 4K/Full HD...).
-// Nic se nestahuje ani nekonfiguruje u addonů, jen se seřadí a případně skryje horší kvalita.
+// řadí a filtruje je podle toho, co se pozná z názvu/popisu (český dabing, české titulky, 4K/Full HD...).
+// Nic se nestahuje ani nekonfiguruje u addonů. Obojí jsou zaškrtávátka, zaškrtnout jde libovolná kombinace.
 
 const React = require('react');
 
 const KEY = 'lumen.streamPrefs';
+// csAudio = český dabing, csSubs = české titulky, enAudio = anglický zvuk, enSubs = anglické titulky
+const LANGUAGES = ['csSubs', 'csAudio', 'enSubs', 'enAudio'];
+// 2160 = 4K, 1080 = Full HD (i 1440p), 0 = méně než Full HD; zdroj s neznámou kvalitou se zobrazí vždy
+const QUALITIES = [2160, 1080, 0];
 const DEFAULTS = {
-    // pořadí jazyků: 'cs-en' = česky, pak anglicky; 'en' = anglicky; 'off' = neřadit podle jazyka
-    language: 'cs-en',
-    // nejnižší zobrazená kvalita: 0 = vše, 1080 = Full HD a víc, 2160 = jen 4K (neznámá kvalita se vždy ponechá)
-    minQuality: 1080
+    languages: [...LANGUAGES],
+    qualities: [2160, 1080]
 };
-const LANGUAGES = ['cs-en', 'en', 'off'];
-const MIN_QUALITIES = [0, 1080, 2160];
 const listeners = new Set();
+
+const pick = (value, allowed) => Array.isArray(value) ? allowed.filter((item) => value.includes(item)) : null;
 
 const read = () => {
     try {
-        const parsed = JSON.parse(window.localStorage.getItem(KEY));
+        const parsed = JSON.parse(window.localStorage.getItem(KEY)) || {};
+        // starší verze ukládala minimální kvalitu (0 / 1080 / 2160)
+        const legacyQualities = typeof parsed.minQuality === 'number' ? QUALITIES.filter((q) => q >= parsed.minQuality) : null;
         return {
-            language: LANGUAGES.includes(parsed?.language) ? parsed.language : DEFAULTS.language,
-            minQuality: MIN_QUALITIES.includes(parsed?.minQuality) ? parsed.minQuality : DEFAULTS.minQuality
+            languages: pick(parsed.languages, LANGUAGES) ?? DEFAULTS.languages,
+            qualities: pick(parsed.qualities, QUALITIES) ?? legacyQualities ?? DEFAULTS.qualities
         };
     } catch (_) {
         return { ...DEFAULTS };
@@ -61,29 +65,48 @@ const detectQuality = (text) => {
     return null;
 };
 
-const detectLanguages = (text) => ({
-    czech: /🇨🇿|(^|[^a-z])(cz|cs|cze|czech)([^a-z]|$)|česk|cesk|dabing|(^|[^a-z])dab([^a-z]|$)|titulk/i.test(text),
-    english: /🇬🇧|🇺🇸|(^|[^a-z])(en|eng|english)([^a-z]|$)/i.test(text)
-});
+const qualityGroup = (quality) => quality === null ? null : quality >= 2160 ? 2160 : quality >= 1080 ? 1080 : 0;
 
-const score = (stream, prefs) => {
-    const text = textOf(stream);
-    const quality = detectQuality(text) ?? 0;
-    const { czech, english } = detectLanguages(text);
-    let language = 0;
-    if (prefs.language === 'cs-en') language = czech ? 2 : english ? 1 : 0;
-    else if (prefs.language === 'en') language = english ? 2 : czech ? 1 : 0;
-    return { quality, language, text };
+// Titulky se v názvech značí slovem „titulky“/„sub“ u jazyka (CZ tit, CZ sub, ENG subs), samotné „CZ“ znamená dabing.
+const CS = '(cz|cs|cze|czech|česk[éaý]?|cesk[eay]?)';
+const EN = '(en|eng|english|anglick[éaý]?)';
+const SUB = '(tit(ulky)?|subs?|subtitles?|forced)';
+const detectLanguages = (text) => {
+    const csSubs = new RegExp(`(^|[^a-z])${CS}[\\s._-]*${SUB}([^a-z]|$)|${SUB}[\\s:._-]*${CS}([^a-z]|$)|titulk`, 'i').test(text);
+    const csAudio = /dabing|(^|[^a-z])dab(ing)?([^a-z]|$)|cz[\s._-]*dub/i.test(text) ||
+        (new RegExp(`(^|[^a-z])${CS}([^a-z]|$)|🇨🇿`, 'i').test(text) && !csSubs);
+    const enSubs = new RegExp(`(^|[^a-z])${EN}[\\s._-]*${SUB}([^a-z]|$)|${SUB}[\\s:._-]*${EN}([^a-z]|$)|multi[\\s._-]*subs?`, 'i').test(text);
+    // bez české stopy jde skoro vždy o původní (většinou anglický) zvuk
+    const enAudio = new RegExp(`(^|[^a-z])${EN}([^a-z]|$)|🇬🇧|🇺🇸`, 'i').test(text) || !csAudio;
+    return { csSubs, csAudio, enSubs, enAudio };
 };
 
-// Vrací seřazené a podle minimální kvality přefiltrované zdroje + počet skrytých
+const LANGUAGE_WEIGHT = { csAudio: 8, csSubs: 4, enAudio: 2, enSubs: 1 };
+
+// Vrací seřazené a přefiltrované zdroje + počet skrytých
 const applyPrefs = (streams, prefs) => {
-    const ranked = streams.map((stream, index) => ({ stream, index, ...score(stream, prefs) }));
-    const kept = prefs.minQuality > 0 ? ranked.filter((item) => item.quality === 0 || item.quality >= prefs.minQuality) : ranked;
+    const ranked = streams.map((stream, index) => {
+        const text = textOf(stream);
+        const quality = detectQuality(text);
+        const found = detectLanguages(text);
+        const matched = prefs.languages.filter((language) => found[language]);
+        return {
+            stream,
+            index,
+            quality: quality ?? 0,
+            group: qualityGroup(quality),
+            matches: matched.length > 0,
+            language: matched.reduce((sum, language) => sum + LANGUAGE_WEIGHT[language], 0)
+        };
+    });
+    // nic nezaškrtnuto = bez filtru
+    const kept = ranked.filter((item) =>
+        (prefs.qualities.length === 0 || item.group === null || prefs.qualities.includes(item.group)) &&
+        (prefs.languages.length === 0 || item.matches));
     // když by filtr smazal vše, nic neskrýváme
     const visible = kept.length > 0 ? kept : ranked;
     visible.sort((a, b) => (b.language - a.language) || (b.quality - a.quality) || (a.index - b.index));
     return { streams: visible.map((item) => item.stream), hidden: ranked.length - visible.length };
 };
 
-module.exports = { usePrefs, getPrefs, setPrefs, applyPrefs, LANGUAGES, MIN_QUALITIES };
+module.exports = { usePrefs, getPrefs, setPrefs, applyPrefs, detectLanguages, LANGUAGES, QUALITIES };

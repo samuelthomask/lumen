@@ -554,8 +554,13 @@ html[data-density='l'] [class*='title-overlay-layer'] {
     }
 
     .lumen-pref-chip {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
         height: 2.2rem;
         padding: 0 1rem;
+
+        .lumen-pref-check { width: 0.95rem; height: 0.95rem; margin-left: -0.25rem; }
         border-radius: 2.2rem;
         font-size: 0.9rem;
         font-weight: 500;
@@ -800,5 +805,139 @@ html.lumen-tv {
     [class*='selectable-inputs-container'] [class*='chips-']:not([class*='lumen-chips']) {
         flex-wrap: wrap;
         overflow: visible !important;
+    }
+}
+
+// ---------- Téma: barva rozhraní, barva podle filmu, světlý režim (common/lumenTheme.js) ----------
+// --lumen-ambient je registrovaná barva, takže změna (jiný film) plynule přejde místo skoku
+@property --lumen-ambient {
+    syntax: '<color>';
+    inherits: true;
+    initial-value: #0a84ff;
+}
+
+html, html body {
+    transition: --lumen-ambient 1.6s ease;
+}
+
+@supports (color: color-mix(in srgb, red, blue)) {
+    :root {
+        --glass-fill: color-mix(in srgb, var(--lumen-ambient) 7%, rgba(255, 255, 255, 0.07));
+    }
+
+    html:not(.lumen-tv) body {
+        background:
+            radial-gradient(120% 90% at 85% -10%, color-mix(in srgb, var(--lumen-ambient) 20%, transparent) 0%, transparent 55%),
+            radial-gradient(90% 70% at 0% 110%, color-mix(in srgb, var(--lumen-ambient) 14%, transparent) 0%, transparent 60%),
+            linear-gradient(180deg, var(--primary-background-color) 0%, var(--secondary-background-color) 100%);
+    }
+}
+
+.lumen-theme-swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    padding: 0.4rem;
+
+    .lumen-theme-swatch {
+        flex: none;
+        width: 1.9rem;
+        height: 1.9rem;
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+        transition: transform 140ms ease, box-shadow 140ms ease;
+
+        &:hover { transform: scale(1.1); }
+        &.selected { box-shadow: 0 0 0 0.18rem var(--primary-background-color), 0 0 0 0.34rem var(--primary-foreground-color); }
+    }
+}
+
+.lumen-theme-modes { padding: 0; }
+
+// Světlý režim: přepíše jen proměnné a nejvýraznější natvrdo bílé prvky. Přehrávač zůstává tmavý (video).
+html.lumen-light {
+    color-scheme: light;
+    --primary-background-color: rgb(242, 242, 247);
+    --secondary-background-color: rgb(226, 228, 238);
+    --primary-foreground-color: rgba(12, 12, 18, 0.92);
+    --secondary-foreground-color: rgb(255, 255, 255);
+    --overlay-color: rgba(0, 0, 0, 0.06);
+    --modal-background-color: rgba(250, 250, 253, 0.78);
+    --outer-glow: 0 0.6rem 2.4rem rgba(20, 20, 40, 0.14);
+    --glass-border: 1px solid rgba(0, 0, 0, 0.08);
+    --glass-fill: rgba(255, 255, 255, 0.62);
+    --glass-card: rgba(255, 255, 255, 0.6);
+    --glass-card-hover: rgba(255, 255, 255, 0.85);
+
+    [class*='player-container'] {
+        --primary-background-color: rgba(6, 6, 9, 1);
+        --secondary-background-color: rgba(18, 19, 28, 1);
+        --primary-foreground-color: rgba(255, 255, 255, 0.94);
+        --secondary-foreground-color: rgba(6, 6, 9, 1);
+        --overlay-color: rgba(255, 255, 255, 0.08);
+        --modal-background-color: rgba(34, 35, 44, 0.62);
+        --glass-border: 1px solid rgba(255, 255, 255, 0.12);
+        --glass-fill: rgba(255, 255, 255, 0.07);
+        color-scheme: dark;
+        color: var(--primary-foreground-color);
+    }
+
+    .lumen-stream-prefs .lumen-pref-chip {
+        background-color: rgba(0, 0, 0, 0.05);
+        border-color: rgba(0, 0, 0, 0.08);
+        color: var(--primary-foreground-color);
+
+        &:hover { background-color: rgba(0, 0, 0, 0.1); }
+        &.selected { background-color: rgba(12, 12, 18, 0.9); color: #fff; }
+    }
+}
+
+html.lumen-light {
+    // postranní panel: světlé sklo, vybraná položka tmavá pilulka
+    [class*='vertical-nav-bar-container'] {
+        background: rgba(255, 255, 255, 0.55);
+        border-color: rgba(0, 0, 0, 0.06);
+        box-shadow: 0 1.6rem 3.4rem rgba(20, 20, 40, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+
+        &::before { color: var(--primary-foreground-color); }
+
+        [class*='nav-tab-button-container'] {
+            &:hover { background-color: rgba(0, 0, 0, 0.06) !important; }
+
+            &[class*='selected'] {
+                background-color: rgba(12, 12, 18, 0.88) !important;
+                box-shadow: 0 0.3rem 1.2rem rgba(20, 20, 40, 0.2);
+
+                [class*='icon'], [class*='label'] { color: #fff !important; }
+            }
+        }
+    }
+
+    // detail titulu má přes celou stránku obrázek filmu a tmavé panely, zůstává proto tmavý
+    [class*='metadetails-container'] {
+        --primary-background-color: rgba(6, 6, 9, 1);
+        --secondary-background-color: rgba(18, 19, 28, 1);
+        --primary-foreground-color: rgba(255, 255, 255, 0.94);
+        --secondary-foreground-color: rgba(6, 6, 9, 1);
+        --overlay-color: rgba(255, 255, 255, 0.08);
+        --glass-border: 1px solid rgba(255, 255, 255, 0.12);
+        --glass-fill: rgba(255, 255, 255, 0.07);
+        color-scheme: dark;
+        color: var(--primary-foreground-color);
+
+        .lumen-stream-prefs .lumen-pref-chip {
+            background-color: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.1);
+
+            &:hover { background-color: rgba(255, 255, 255, 0.16); }
+            &.selected { background-color: rgba(255, 255, 255, 0.93); color: #0b0b10; }
+        }
+    }
+
+    // úvod domovské stránky: obrázek mizí do světlého pozadí až níž, aby bílý text zůstal na tmavém
+    [class*='board-backdrop']:not([class*='image']) {
+        -webkit-mask-image: linear-gradient(180deg, #000 62%, transparent 100%);
+        mask-image: linear-gradient(180deg, #000 62%, transparent 100%);
     }
 }

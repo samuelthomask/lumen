@@ -1,5 +1,6 @@
-// Lumen: obří banner (16:9) na domovské stránce. Zobrazuje vybraný titul (klik na dlaždici) nebo
-// doporučené tituly prvního katalogu, které se střídají. Žádná videa ani trailery.
+// Lumen: „Kino“ úvod domovské stránky. Obrázek titulu leží přes celé okno za postranním panelem (vykresluje ho Board,
+// Hero mu ho předá přes onImage), text a tlačítka jsou vlevo dole bez rámečku. Zobrazuje vybraný titul (klik na dlaždici),
+// tip z „Co dnes?“ nebo doporučené tituly prvního katalogu, které se střídají. Žádná videa ani trailery.
 
 const React = require('react');
 const PropTypes = require('prop-types');
@@ -10,11 +11,11 @@ const { default: getMetaDetailsHref } = require('stremio/common/getMetaDetailsHr
 const { useLumenText } = require('stremio/common/lumenText');
 const { isTvMode } = require('stremio/common/tvNavigation');
 const { useTranslation } = require('react-i18next');
+const { isCinemetaItem, fetchMeta } = require('./cinemeta');
 const styles = require('./styles');
 
 const MAX_SLIDES = 6;
 const ROTATE_MS = 10000;
-const CINEMETA = 'https://v3-cinemeta.strem.io';
 
 // Poster z metahub.space → pozadí stejného titulu (bez dalších dotazů na server)
 const backgroundFor = (poster) => {
@@ -31,27 +32,19 @@ const normalize = (item) => ({
     type: item.type,
     poster: item.poster,
     background: backgroundFor(item.poster),
-    href: getMetaDetailsHref(item.deepLinks)
+    href: getMetaDetailsHref(item.deepLinks),
+    tonight: item.tonight === true
 });
 
-// Doplňující údaje (popis, žánry, délka, logo) z Cinemety; výsledky se pamatují
-const extrasCache = new Map();
+// Doplňující údaje (popis, žánry, délka, logo) z Cinemety
 const useExtras = (item) => {
-    const key = item && /^tt\d+$/.test(item.id) && (item.type === 'movie' || item.type === 'series') ? `${item.type}/${item.id}` : null;
-    const [extras, setExtras] = React.useState(() => key && extrasCache.has(key) ? extrasCache.get(key) : null);
+    const key = isCinemetaItem(item) ? `${item.type}/${item.id}` : null;
+    const [extras, setExtras] = React.useState(null);
     React.useEffect(() => {
         if (!key) { setExtras(null); return; }
-        if (extrasCache.has(key)) { setExtras(extrasCache.get(key)); return; }
         let cancelled = false;
         setExtras(null);
-        fetch(`${CINEMETA}/meta/${key}.json`)
-            .then((response) => response.ok ? response.json() : null)
-            .then((data) => {
-                const meta = data && data.meta ? data.meta : null;
-                extrasCache.set(key, meta);
-                if (!cancelled) setExtras(meta);
-            })
-            .catch(() => { if (!cancelled) setExtras(null); });
+        fetchMeta(item.type, item.id).then((meta) => { if (!cancelled) setExtras(meta); });
         return () => { cancelled = true; };
     }, [key]);
     return extras;
@@ -59,7 +52,7 @@ const useExtras = (item) => {
 
 const typeLabel = (type) => typeof type === 'string' && type.length > 0 ? type.charAt(0).toUpperCase() + type.slice(1) : '';
 
-const Hero = ({ className, catalogs, selected, onResetSelection }) => {
+const Hero = ({ className, catalogs, selected, onResetSelection, onImage, onTonight, tonightLoading }) => {
     const lt = useLumenText();
     const { t } = useTranslation();
     const slides = React.useMemo(() => {
@@ -81,23 +74,28 @@ const Hero = ({ className, catalogs, selected, onResetSelection }) => {
 
     const active = selected ? normalize(selected) : slides.length > 0 ? slides[Math.min(index, slides.length - 1)] : null;
     const extras = useExtras(active);
+    const image = active ? extras?.background ?? active.background ?? active.poster : null;
+    React.useEffect(() => {
+        if (typeof onImage === 'function') onImage(image);
+    }, [image]);
 
     if (active === null) return null;
 
-    const image = extras?.background ?? active.background ?? active.poster;
     const meta = [
         extras?.releaseInfo ?? extras?.year,
         extras?.runtime,
         extras?.imdbRating ? `IMDb ${extras.imdbRating}` : null,
         Array.isArray(extras?.genres) ? extras.genres.slice(0, 3).join(', ') : null
     ].filter(Boolean);
+    const tabIndex = isTvMode() ? 0 : -1;
 
     return (
-        <div className={classnames(className, styles['hero-container'], 'animation-fade-in')}>
-            <img key={image} className={styles['hero-image']} src={image} alt={' '} />
-            <div className={styles['hero-shade']} />
-            <div className={styles['hero-glass']}>
-                <div className={styles['hero-type']}>{t(`TYPE_${active.type}`, { defaultValue: typeLabel(active.type) })}</div>
+        <div className={classnames(className, styles['hero-container'])}>
+            <div key={active.id} className={styles['hero-info']}>
+                <div className={styles['hero-type']}>
+                    {active.tonight ? <span className={styles['hero-badge']}>{lt('tonightBadge')}</span> : null}
+                    {t(`TYPE_${active.type}`, { defaultValue: typeLabel(active.type) })}
+                </div>
                 {
                     extras?.logo ?
                         <img key={extras.logo} className={styles['hero-logo']} src={extras.logo} alt={active.name} title={active.name} />
@@ -106,15 +104,32 @@ const Hero = ({ className, catalogs, selected, onResetSelection }) => {
                 }
                 {meta.length > 0 ? <div className={styles['hero-meta']}>{meta.join('  ·  ')}</div> : null}
                 {extras?.description ? <div className={styles['hero-description']}>{extras.description}</div> : null}
-                {
-                    active.href ?
-                        <Button className={styles['hero-button']} href={active.href} tabIndex={isTvMode() ? 0 : -1}>
-                            <Icon className={styles['hero-button-icon']} name={'play'} />
-                            <div className={styles['hero-button-label']}>{lt('details')}</div>
-                        </Button>
-                        :
-                        null
-                }
+                <div className={styles['hero-buttons']}>
+                    {
+                        active.href ?
+                            <Button className={styles['hero-button']} href={active.href} tabIndex={tabIndex}>
+                                <Icon className={styles['hero-button-icon']} name={'play'} />
+                                <div className={styles['hero-button-label']}>{lt('details')}</div>
+                            </Button>
+                            :
+                            null
+                    }
+                    {
+                        typeof onTonight === 'function' ?
+                            <Button className={classnames(styles['hero-button'], styles['secondary'], { [styles['loading']]: tonightLoading })}
+                                tabIndex={tabIndex} onClick={onTonight}>
+                                <svg className={styles['hero-button-icon']} viewBox={'0 0 24 24'} aria-hidden={'true'}>
+                                    <rect x={'3'} y={'3'} width={'18'} height={'18'} rx={'4.5'} fill={'none'} stroke={'currentColor'} strokeWidth={'2'} />
+                                    <circle cx={'8.5'} cy={'8.5'} r={'1.6'} fill={'currentColor'} />
+                                    <circle cx={'12'} cy={'12'} r={'1.6'} fill={'currentColor'} />
+                                    <circle cx={'15.5'} cy={'15.5'} r={'1.6'} fill={'currentColor'} />
+                                </svg>
+                                <div className={styles['hero-button-label']}>{lt(active.tonight ? 'tonightAnother' : 'tonight')}</div>
+                            </Button>
+                            :
+                            null
+                    }
+                </div>
             </div>
             {
                 !selected && slides.length > 1 ?
@@ -139,7 +154,10 @@ Hero.propTypes = {
     className: PropTypes.string,
     catalogs: PropTypes.array,
     selected: PropTypes.object,
-    onResetSelection: PropTypes.func
+    onResetSelection: PropTypes.func,
+    onImage: PropTypes.func,
+    onTonight: PropTypes.func,
+    tonightLoading: PropTypes.bool
 };
 
 Hero.backgroundFor = backgroundFor;

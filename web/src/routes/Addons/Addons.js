@@ -171,6 +171,8 @@ const Addons = () => {
                                     {
                                         installedAddons.catalog
                                             .filter(searchFilterPredicate)
+                                            // Lumen: Local Files jádro nedovolí odebrat a bez serveru Stremia nic nedělá, tak ho jen nezobrazujeme
+                                            .filter((addon) => addon.transportUrl !== 'http://127.0.0.1:11470/local-addon/manifest.json')
                                             .map((addon, index) => (
                                                 <Addon
                                                     key={index}
