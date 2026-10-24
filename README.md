@@ -130,10 +130,8 @@ Uninstall: drag Lumen from Applications to the Trash. To also delete your data, 
 
 1. On the TV, open the **Google Play Store**, search for **Downloader** (by AFTVnews) and install it.
 2. Allow it to install apps: *Settings → Apps → Security & restrictions → Unknown sources* → turn on **Downloader**. (On Google TV: *Settings → System → About* → click *Android TV OS build* 7× to enable developer mode, then *Settings → Apps → Security & restrictions → Unknown sources*.)
-3. Open Downloader and type this address into the URL box:
-   ```
-   https://github.com/samuelthomask/Lumen/releases/latest/download/Lumen-AndroidTV.apk
-   ```
+3. Open Downloader and type the code **`8216339`** into the URL box. It always points to the newest version.
+   <sub>(Or type the full address: `https://github.com/samuelthomask/Lumen/releases/latest/download/Lumen-AndroidTV.apk`)</sub>
 4. Click **Go**, wait for the download and click **Install**. Then **Open** (Lumen is also in your apps list).
 5. Control everything with the arrows, **OK** and **Back** on your remote. In the player, press **OK** or an arrow to show the control bar (subtitles, audio, speed).
 

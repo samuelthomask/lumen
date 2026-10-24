@@ -126,10 +126,8 @@ Odinstalace: přetáhněte Lumen ze složky Aplikace do Koše. Pokud chcete smaz
 
 1. Na televizi otevřete **Obchod Google Play**, vyhledejte aplikaci **Downloader** (od AFTVnews) a nainstalujte ji.
 2. Povolte jí instalovat aplikace: *Nastavení → Aplikace → Zabezpečení a omezení → Neznámé zdroje* → zapněte **Downloader**. (Na Google TV: *Nastavení → Systém → Informace* → 7× klikněte na *Sestavení OS Android TV*, tím zapnete režim vývojáře, a pak *Nastavení → Aplikace → Zabezpečení a omezení → Neznámé zdroje*.)
-3. Otevřete Downloader a do pole pro adresu napište:
-   ```
-   https://github.com/samuelthomask/Lumen/releases/latest/download/Lumen-AndroidTV.apk
-   ```
+3. Otevřete Downloader a do pole pro adresu napište kód **`8216339`**. Vede vždycky na nejnovější verzi.
+   <sub>(Nebo celou adresu: `https://github.com/samuelthomask/Lumen/releases/latest/download/Lumen-AndroidTV.apk`)</sub>
 4. Klikněte na **Go**, počkejte na stažení a klikněte na **Instalovat**. Pak na **Otevřít** (Lumen najdete i mezi aplikacemi).
 5. Všechno ovládáte šipkami, tlačítkem **OK** a **Zpět** na ovladači. V přehrávači stiskněte **OK** nebo šipku a ukáže se lišta (titulky, zvuk, rychlost).
 
