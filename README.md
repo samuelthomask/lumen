@@ -4,12 +4,13 @@
 
 # Lumen
 
-**A dark, glassy movie & series browser and player for Windows and macOS** 🎬✨
+**A dark, glassy movie & series browser and player for Windows, macOS and Android TV** 🎬✨
 with automatic HDR (Windows), profiles and optional end-to-end encrypted sync.
 
 [![Release](https://img.shields.io/github/v/release/samuelthomask/Lumen?style=for-the-badge&color=0a84ff&label=Download)](../../releases/latest)
 [![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-bf5af2?style=for-the-badge&logo=windows11&logoColor=white)](#-install)
 [![macOS](https://img.shields.io/badge/macOS-12%2B%20(Apple%20Silicon)-bf5af2?style=for-the-badge&logo=apple&logoColor=white)](#-install)
+[![Android TV](https://img.shields.io/badge/Android%20TV-beta-bf5af2?style=for-the-badge&logo=androidtv&logoColor=white)](#-install)
 [![HDR](https://img.shields.io/badge/HDR-automatic-ff9f0a?style=for-the-badge)](#-features)
 [![License](https://img.shields.io/badge/License-GPL--2.0-30d158?style=for-the-badge)](LICENSE)
 
@@ -93,6 +94,9 @@ https://github.com/user-attachments/assets/7c7c40a3-a23d-4a13-b2ba-edfe1fefa871
 - macOS 12 Monterey or newer on a **Mac with Apple Silicon** (M1 or newer). Intel Macs are not supported yet.
 - Nothing else to install: the app includes the player library (libmpv) and the local streaming server (Node.js + WebTorrent).
 
+**Android TV / Google TV**
+- Android TV 7.0 or newer (TV, Chromecast with Google TV, Shield, Mi Box…). Direct links only, no torrents.
+
 ## 🚀 Install
 
 ### 🪟 Windows
@@ -121,6 +125,23 @@ Uninstall via *Settings → Apps* (or run `Uninstall.exe` in the install folder)
    ```
 
 Uninstall: drag Lumen from Applications to the Trash. To also delete your data, remove `~/Library/WebKit/io.github.samuelthomask.lumen`, `~/Library/Application Support/Lumen` and `~/Library/Caches/io.github.samuelthomask.lumen`.
+
+### 📺 Android TV / Google TV (beta, new in 1.3.0)
+
+1. On the TV, open the **Google Play Store**, search for **Downloader** (by AFTVnews) and install it.
+2. Allow it to install apps: *Settings → Apps → Security & restrictions → Unknown sources* → turn on **Downloader**. (On Google TV: *Settings → System → About* → click *Android TV OS build* 7× to enable developer mode, then *Settings → Apps → Security & restrictions → Unknown sources*.)
+3. Open Downloader and type this address into the URL box:
+   ```
+   https://github.com/samuelthomask/Lumen/releases/latest/download/Lumen-AndroidTV.apk
+   ```
+4. Click **Go**, wait for the download and click **Install**. Then **Open** (Lumen is also in your apps list).
+5. Control everything with the arrows, **OK** and **Back** on your remote. In the player, press **OK** or an arrow to show the control bar (subtitles, audio, speed).
+
+To update, install the new APK the same way, over the old version: your data stays. The app does not update by itself on TV.
+Uninstall: *Settings → Apps → Lumen → Uninstall*.
+
+> [!NOTE]
+> On Android TV only sources with a **direct link** play (for example through a debrid service). **Torrents do not work there** (there is no built-in streaming server). Lumen does not run on LG (webOS) or Samsung (Tizen) TVs, only on devices with Android TV / Google TV (e.g. Chromecast with Google TV, Nvidia Shield, Xiaomi Mi Box, TVs from Sony, Philips, TCL).
 
 ## 🍿 How to get content and addons
 

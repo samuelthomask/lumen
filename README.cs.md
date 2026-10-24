@@ -4,12 +4,13 @@
 
 # Lumen
 
-**Tmavý „skleněný" prohlížeč a přehrávač filmů a seriálů pro Windows a macOS** 🎬✨
+**Tmavý „skleněný" prohlížeč a přehrávač filmů a seriálů pro Windows, macOS a Android TV** 🎬✨
 s automatickým HDR (ve Windows), profily a volitelnou synchronizací šifrovanou od konce ke konci.
 
 [![Stáhnout](https://img.shields.io/github/v/release/samuelthomask/Lumen?style=for-the-badge&color=0a84ff&label=Stáhnout)](../../releases/latest)
 [![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-bf5af2?style=for-the-badge&logo=windows11&logoColor=white)](#-instalace)
 [![macOS](https://img.shields.io/badge/macOS-12%2B%20(Apple%20Silicon)-bf5af2?style=for-the-badge&logo=apple&logoColor=white)](#-instalace)
+[![Android TV](https://img.shields.io/badge/Android%20TV-beta-bf5af2?style=for-the-badge&logo=androidtv&logoColor=white)](#-instalace)
 [![HDR](https://img.shields.io/badge/HDR-automaticky-ff9f0a?style=for-the-badge)](#-funkce)
 [![Licence](https://img.shields.io/badge/Licence-GPL--2.0-30d158?style=for-the-badge)](LICENSE)
 
@@ -89,6 +90,9 @@ s automatickým HDR (ve Windows), profily a volitelnou synchronizací šifrovano
 - macOS 12 Monterey nebo novější na **Macu s Apple Silicon** (M1 a novější). Macy s procesorem Intel zatím nejsou podporované.
 - Nic dalšího instalovat nemusíte: aplikace obsahuje přehrávací knihovnu (libmpv) i lokální streamovací server (Node.js + WebTorrent).
 
+**Android TV / Google TV**
+- Android TV 7.0 nebo novější (televize, Chromecast s Google TV, Shield, Mi Box…). Jen přímé odkazy, bez torrentů.
+
 ## 🚀 Instalace
 
 ### 🪟 Windows
@@ -117,6 +121,23 @@ Odinstalace: *Nastavení → Aplikace* (nebo `Uninstall.exe` v instalační slo�
    ```
 
 Odinstalace: přetáhněte Lumen ze složky Aplikace do Koše. Pokud chcete smazat i data, odstraňte `~/Library/WebKit/io.github.samuelthomask.lumen`, `~/Library/Application Support/Lumen` a `~/Library/Caches/io.github.samuelthomask.lumen`.
+
+### 📺 Android TV / Google TV (beta, novinka v 1.3.0)
+
+1. Na televizi otevřete **Obchod Google Play**, vyhledejte aplikaci **Downloader** (od AFTVnews) a nainstalujte ji.
+2. Povolte jí instalovat aplikace: *Nastavení → Aplikace → Zabezpečení a omezení → Neznámé zdroje* → zapněte **Downloader**. (Na Google TV: *Nastavení → Systém → Informace* → 7× klikněte na *Sestavení OS Android TV*, tím zapnete režim vývojáře, a pak *Nastavení → Aplikace → Zabezpečení a omezení → Neznámé zdroje*.)
+3. Otevřete Downloader a do pole pro adresu napište:
+   ```
+   https://github.com/samuelthomask/Lumen/releases/latest/download/Lumen-AndroidTV.apk
+   ```
+4. Klikněte na **Go**, počkejte na stažení a klikněte na **Instalovat**. Pak na **Otevřít** (Lumen najdete i mezi aplikacemi).
+5. Všechno ovládáte šipkami, tlačítkem **OK** a **Zpět** na ovladači. V přehrávači stiskněte **OK** nebo šipku a ukáže se lišta (titulky, zvuk, rychlost).
+
+Aktualizace: nové APK nainstalujete stejně, přes starou verzi, data zůstanou. Na televizi se aplikace sama neaktualizuje.
+Odinstalace: *Nastavení → Aplikace → Lumen → Odinstalovat*.
+
+> [!NOTE]
+> Na Android TV hrají jen zdroje s **přímým odkazem** (např. přes debrid službu). **Torrenty tam nefungují** (chybí vestavěný streamovací server). Lumen nejde na televizích LG (webOS) ani Samsung (Tizen), jen na zařízeních s Android TV / Google TV (např. Chromecast s Google TV, Nvidia Shield, Xiaomi Mi Box, televize Sony, Philips, TCL).
 
 ## 🍿 Jak získat obsah a addony
 
