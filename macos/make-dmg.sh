@@ -4,7 +4,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-VERSION="${VERSION:-2.1.3}"
+VERSION="${VERSION:-2.1.4}"
 OUT="dist"
 APP="$OUT/Lumen.app"
 DMG="$OUT/Lumen-$VERSION.dmg"

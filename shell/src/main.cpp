@@ -957,7 +957,7 @@ static void discordCommand(const std::string& method, const Json* arg) {
 #pragma comment(lib, "urlmon.lib")
 #pragma comment(lib, "bcrypt.lib")
 
-static const char* LUMEN_VERSION = "2.1.3";   // držet shodně s installer\setup.cpp a setup.rc
+static const char* LUMEN_VERSION = "2.1.4";   // držet shodně s installer\setup.cpp a setup.rc
 static std::atomic<bool> g_updating{false};
 static std::wstring exeDir();
 
