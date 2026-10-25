@@ -12,6 +12,7 @@ const { useLumenText } = require('stremio/common/lumenText');
 const { isTvMode } = require('stremio/common/tvNavigation');
 const { useTranslation } = require('react-i18next');
 const { isCinemetaItem, fetchMeta } = require('./cinemeta');
+const { useLangLogo } = require('stremio/common/langLogo');
 const styles = require('./styles');
 
 const MAX_SLIDES = 6;
@@ -74,6 +75,7 @@ const Hero = ({ className, catalogs, selected, onResetSelection, onImage, onToni
 
     const active = selected ? normalize(selected) : slides.length > 0 ? slides[Math.min(index, slides.length - 1)] : null;
     const extras = useExtras(active);
+    const heading = useLangLogo(active?.type, active?.id, extras?.logo, active?.name);
     const image = active ? extras?.background ?? active.background ?? active.poster : null;
     React.useEffect(() => {
         if (typeof onImage === 'function') onImage(image);
@@ -97,10 +99,10 @@ const Hero = ({ className, catalogs, selected, onResetSelection, onImage, onToni
                     {t(`TYPE_${active.type}`, { defaultValue: typeLabel(active.type) })}
                 </div>
                 {
-                    extras?.logo ?
-                        <img key={extras.logo} className={styles['hero-logo']} src={extras.logo} alt={active.name} title={active.name} />
+                    heading.logo ?
+                        <img key={heading.logo} className={styles['hero-logo']} src={heading.logo} alt={heading.title} title={heading.title} />
                         :
-                        <div className={styles['hero-title']} title={active.name}>{active.name}</div>
+                        <div className={styles['hero-title']} title={heading.title} style={heading.pending ? { visibility: 'hidden' } : null}>{heading.title}</div>
                 }
                 {meta.length > 0 ? <div className={styles['hero-meta']}>{meta.join('  ·  ')}</div> : null}
                 {extras?.description ? <div className={styles['hero-description']}>{extras.description}</div> : null}

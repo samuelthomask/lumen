@@ -21,6 +21,7 @@ const MetaLinks = require('./MetaLinks');
 const MetaPreviewPlaceholder = require('./MetaPreviewPlaceholder');
 const styles = require('./styles');
 const { Ratings } = require('./Ratings');
+const { useLangLogo, idFromDeepLinks } = require('stremio/common/langLogo');
 
 const ALLOWED_LINK_REDIRECTS = [
     routesRegexp.search.regexp,
@@ -100,9 +101,12 @@ const MetaPreview = React.forwardRef(({ className, compact, name, logo, backgrou
 
         return trailerStreams[0].deepLinks.player;
     }, [trailerStreams]);
+    // Lumen: logo jen české/anglické, jinak název (viz common/langLogo.js)
+    const langId = React.useMemo(() => idFromDeepLinks(deepLinks), [deepLinks]);
+    const heading = useLangLogo(langId?.type, langId?.id, logo, name);
     const renderLogoFallback = React.useCallback(() => (
-        <div className={styles['logo-placeholder']}>{name}</div>
-    ), [name]);
+        <div className={styles['logo-placeholder']} style={heading.pending ? { visibility: 'hidden' } : null}>{heading.title}</div>
+    ), [heading.title, heading.pending]);
     const metaItemActions = React.useMemo(() => [
         {
             icon: inLibrary ? 'remove-from-library' : 'add-to-library',
@@ -127,12 +131,12 @@ const MetaPreview = React.forwardRef(({ className, compact, name, logo, backgrou
             }
             <div className={styles['meta-info-container']}>
                 {
-                    typeof logo === 'string' && logo.length > 0 ?
+                    typeof heading.logo === 'string' && heading.logo.length > 0 ?
                         <Image
                             className={styles['logo']}
-                            src={logo}
+                            src={heading.logo}
                             alt={' '}
-                            title={name}
+                            title={heading.title}
                             renderFallback={renderLogoFallback}
                         />
                         :

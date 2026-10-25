@@ -1,4 +1,4 @@
-// Copyright (C) 2017-2023 Smart code 203358507
+﻿// Copyright (C) 2017-2023 Smart code 203358507
 
 const path = require('path');
 const os = require('os');
@@ -223,6 +223,8 @@ module.exports = (env, argv) => ({
             // účty Lumenu (veřejný klíč; data chrání pravidla v databázi, viz cloud/supabase.sql)
             LUMEN_SUPABASE_URL: 'https://wvyvukhreavmgsvwgqeu.supabase.co',
             LUMEN_SUPABASE_KEY: 'sb_publishable_005x14TSDk2o-A9Wowee0w_EKbaPaJ0',
+            // klíč TMDB pro výběr loga v češtině/angličtině (src/common/langLogo.js); prázdný = původní loga
+            LUMEN_TMDB_KEY: '',
             ...env,
             SERVICE_WORKER_DISABLED: false,
             DEBUG: argv.mode !== 'production',
@@ -231,6 +233,12 @@ module.exports = (env, argv) => ({
         }),
         new webpack.ProvidePlugin({
             Buffer: ['buffer', 'Buffer']
+        }),
+        // Lumen: na Android TV (bez streamovacího serveru) přímé odkazy rovnou do přehrávače obalu, viz src/common/selectVideoImplementation.js
+        new webpack.NormalModuleReplacementPlugin(/^\.\/selectVideoImplementation$/, (resource) => {
+            if (/stremio-video[\\/]src[\\/]StremioVideo$/.test(resource.context)) {
+                resource.request = path.join(__dirname, 'src', 'common', 'selectVideoImplementation.js');
+            }
         }),
         argv.mode === 'production' &&
             new WorkboxPlugin.GenerateSW({

@@ -39,6 +39,11 @@ The name and the logo "Lumen" are this project's own.
 
 Film posters, backdrops and logos shown in screenshots belong to their respective rights holders and are used only to illustrate the user interface.
 
+## Data sources
+
+Title logos (in builds that include a TMDB key) come from TMDB. *This product uses the TMDB API but is not endorsed or certified by TMDB.*
+See [docs/PRIVACY.md](docs/PRIVACY.md) for what is sent to which service.
+
 ## Content
 
 Lumen contains no video content and no preinstalled addons. You are responsible for the addons and services you use

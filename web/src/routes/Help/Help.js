@@ -47,7 +47,8 @@ const TEXT = {
         sdk: 'Jak addony fungují (technická dokumentace)',
         docs: 'Dokumentace Lumenu',
         warnTitle: 'Upozornění',
-        warnText: 'Lumen žádný obsah neposkytuje ani nedoporučuje konkrétní zdroje. Používejte jen obsah, ke kterému máte právo. Za addony a služby třetích stran odpovídáte sami.'
+        warnText: 'Lumen žádný obsah neposkytuje ani nedoporučuje konkrétní zdroje. Používejte jen obsah, ke kterému máte právo. Za addony a služby třetích stran odpovídáte sami. Lumen je poskytován zdarma „tak, jak je“, bez záruky.',
+        privacy: 'Zásady ochrany soukromí a podmínky'
     },
     en: {
         title: 'Help',
@@ -71,7 +72,8 @@ const TEXT = {
         sdk: 'How addons work (technical documentation)',
         docs: 'Lumen documentation',
         warnTitle: 'Notice',
-        warnText: 'Lumen provides no content and does not recommend specific sources. Use only content you have the right to watch. You are responsible for third-party addons and services.'
+        warnText: 'Lumen provides no content and does not recommend specific sources. Use only content you have the right to watch. You are responsible for third-party addons and services. Lumen is provided free of charge "as is", without warranty.',
+        privacy: 'Privacy policy and terms'
     }
 };
 
@@ -117,6 +119,7 @@ const Help = () => {
                     <p>{tx.moreText}</p>
                     <div className={'lumen-help-links'}>
                         {REPO_URL ? link(tx.docs, REPO_URL) : null}
+                        {REPO_URL ? link(tx.privacy, `${REPO_URL}/blob/main/docs/PRIVACY.md`) : null}
                         {link(tx.sdk, ADDON_SDK_URL)}
                     </div>
                 </section>
