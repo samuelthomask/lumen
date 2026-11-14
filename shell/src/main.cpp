@@ -614,7 +614,115 @@ static void sendVisibility() {
 static bool g_overlayHidden = false;
 static ULONGLONG g_lastActivity = 0;
 
+// ---------- Plynulé zmizení kurzoru ----------
+// Systémový kurzor se zprůhlednit nedá. Při skrytí proto na jeho místě krátce necháme průhledné okénko
+// (neklikací, nad vším) s obrázkem kurzoru, jehož průhlednost za ~300 ms klesne na nulu; skutečný kurzor je mezitím skrytý.
+
+static HWND g_fadeWnd = nullptr;
+static HDC g_fadeDc = nullptr;
+static HBITMAP g_fadeBmp = nullptr, g_fadeOld = nullptr;
+static ULONGLONG g_fadeStart = 0;
+static bool g_cursorNone = false;   // web chce skrytý kurzor (cursor: none)
+static const ULONGLONG FADE_MS = 300;
+
+static void cursorFadeStop() {
+    KillTimer(g_main, 9);
+    if (g_fadeWnd) { DestroyWindow(g_fadeWnd); g_fadeWnd = nullptr; }
+    if (g_fadeDc) { SelectObject(g_fadeDc, g_fadeOld); DeleteDC(g_fadeDc); g_fadeDc = nullptr; }
+    if (g_fadeBmp) { DeleteObject(g_fadeBmp); g_fadeBmp = nullptr; }
+}
+
+static void cursorFadeTick() {
+    if (!g_fadeWnd) { KillTimer(g_main, 9); return; }
+    ULONGLONG el = GetTickCount64() - g_fadeStart;
+    if (el >= FADE_MS) { cursorFadeStop(); return; }
+    BLENDFUNCTION bf{ AC_SRC_OVER, 0, (BYTE)(255 - 255 * el / FADE_MS), AC_SRC_ALPHA };
+    POINT src{ 0, 0 };
+    UpdateLayeredWindow(g_fadeWnd, nullptr, nullptr, nullptr, g_fadeDc, &src, 0, &bf, ULW_ALPHA);
+}
+
+static bool cursorOverMainWindow() {
+    POINT p;
+    if (!GetCursorPos(&p)) return false;
+    HWND w = WindowFromPoint(p);
+    return w && GetAncestor(w, GA_ROOT) == g_main;
+}
+
+// Skryje kurzor s odeznívajícím obrazem; když se okénko nepodaří vytvořit, kurzor prostě zmizí.
+static void cursorHideFaded(HCURSOR cur) {
+    cursorFadeStop();
+    SetCursor(nullptr);
+    if (!cur) cur = LoadCursorW(nullptr, IDC_ARROW);
+    POINT pt;
+    ICONINFO ii{};
+    if (!GetCursorPos(&pt) || !GetIconInfo(cur, &ii)) return;
+    if (ii.hbmMask) DeleteObject(ii.hbmMask);
+    if (ii.hbmColor) DeleteObject(ii.hbmColor);
+
+    int w = GetSystemMetrics(SM_CXCURSOR), h = GetSystemMetrics(SM_CYCURSOR);
+    HDC scr = GetDC(nullptr);
+    g_fadeDc = CreateCompatibleDC(scr);
+    BITMAPINFO bi{};
+    bi.bmiHeader = { sizeof(BITMAPINFOHEADER), w, -h, 1, 32, BI_RGB };
+    void* bits = nullptr;
+    g_fadeBmp = CreateDIBSection(scr, &bi, DIB_RGB_COLORS, &bits, nullptr, 0);
+    ReleaseDC(nullptr, scr);
+    if (!g_fadeBmp || !bits) { cursorFadeStop(); return; }
+    g_fadeOld = (HBITMAP)SelectObject(g_fadeDc, g_fadeBmp);
+    memset(bits, 0, (size_t)w * h * 4);
+    DrawIconEx(g_fadeDc, 0, 0, cur, w, h, 0, nullptr, DI_NORMAL);
+    DWORD* px = (DWORD*)bits;
+    bool anyAlpha = false;
+    for (int i = 0; i < w * h && !anyAlpha; i++) anyAlpha = (px[i] >> 24) != 0;
+    if (!anyAlpha) for (int i = 0; i < w * h; i++) if (px[i] & 0xFFFFFF) px[i] |= 0xFF000000;   // starý kurzor bez průhlednosti
+
+    static bool registered = false;
+    HINSTANCE inst = GetModuleHandleW(nullptr);
+    if (!registered) {
+        WNDCLASSW wc{};
+        wc.lpfnWndProc = DefWindowProcW; wc.hInstance = inst; wc.lpszClassName = L"LumenCursorFade";
+        RegisterClassW(&wc);
+        registered = true;
+    }
+    g_fadeWnd = CreateWindowExW(WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW,
+                                L"LumenCursorFade", L"", WS_POPUP, 0, 0, w, h, nullptr, nullptr, inst, nullptr);
+    if (!g_fadeWnd) { cursorFadeStop(); return; }
+    POINT dst{ pt.x - (LONG)ii.xHotspot, pt.y - (LONG)ii.yHotspot }, src{ 0, 0 };
+    SIZE sz{ w, h };
+    BLENDFUNCTION bf{ AC_SRC_OVER, 0, 255, AC_SRC_ALPHA };
+    UpdateLayeredWindow(g_fadeWnd, nullptr, &dst, &sz, g_fadeDc, &src, 0, &bf, ULW_ALPHA);
+    ShowWindow(g_fadeWnd, SW_SHOWNOACTIVATE);
+    g_fadeStart = GetTickCount64();
+    SetTimer(g_main, 9, 16, nullptr);
+}
+
+// Když je vrstva rozhraní skrytá, první stisk klávesy se do webu nedostane (jen ji vrátí). Pošleme ho webu sami.
+static void forwardKeyToWeb(WPARAM vk) {
+    char key[2] = { 0, 0 }, code[8] = { 0 };
+    const char* keyName = nullptr; const char* codeName = nullptr;
+    switch (vk) {
+    case VK_LEFT:  keyName = codeName = "ArrowLeft"; break;
+    case VK_RIGHT: keyName = codeName = "ArrowRight"; break;
+    case VK_UP:    keyName = codeName = "ArrowUp"; break;
+    case VK_DOWN:  keyName = codeName = "ArrowDown"; break;
+    case VK_SPACE: keyName = " "; codeName = "Space"; break;
+    default:
+        if (vk >= 'A' && vk <= 'Z') { key[0] = (char)(vk - 'A' + 'a'); snprintf(code, sizeof code, "Key%c", (char)vk); }
+        else if (vk >= '0' && vk <= '9') { key[0] = (char)vk; snprintf(code, sizeof code, "Digit%c", (char)vk); }
+        else return;
+        keyName = key; codeName = code;
+    }
+    std::string d = "{\"key\":";
+    jsonEscape(d, keyName);
+    d += ",\"code\":";
+    jsonEscape(d, codeName);
+    d += ",\"keyCode\":" + std::to_string((int)vk);
+    d += (GetKeyState(VK_SHIFT) & 0x8000) ? ",\"shift\":true}" : ",\"shift\":false}";
+    postSignal("lumen-key", d);
+}
+
 static void overlayShow() {
+    cursorFadeStop();
     g_lastActivity = GetTickCount64();
     if (g_overlayHidden && g_controller) {
         g_controller->put_IsVisible(TRUE);
@@ -636,6 +744,7 @@ static void overlayCheckIdle() {
     if (p) mpv_free(p);
     if (t) mpv_free(t);
     if (!playing) return;
+    if (cursorOverMainWindow()) cursorHideFaded(g_cursor);
     g_controller->put_IsVisible(FALSE);
     g_overlayHidden = true;
     logf("overlay: hidden (idle)");
@@ -957,7 +1066,7 @@ static void discordCommand(const std::string& method, const Json* arg) {
 #pragma comment(lib, "urlmon.lib")
 #pragma comment(lib, "bcrypt.lib")
 
-static const char* LUMEN_VERSION = "2.1.4";   // držet shodně s installer\setup.cpp a setup.rc
+static const char* LUMEN_VERSION = "2.1.5";   // držet shodně s installer\setup.cpp a setup.rc
 static std::atomic<bool> g_updating{false};
 static std::wstring exeDir();
 
@@ -1109,6 +1218,8 @@ static void handleWebMessage(const std::string& text) {
         mpv_observe_property(g_mpv, 0, arg1->s.c_str(), MPV_FORMAT_NODE);
     } else if (method == "win-set-visibility" && arg1 && arg1->type == Json::Obj) {
         if (const Json* fs = arg1->get("fullscreen")) if (fs->type == Json::Bool) setFullscreen(fs->b);
+    } else if (method == "lumen-activity") {
+        g_lastActivity = GetTickCount64();   // klávesy při viditelném webu obalem neprojdou; web o nich dá vědět
     } else if (method == "lumen-keep-overlay" && arg1 && arg1->type == Json::Bool) {
         g_keepOverlay = arg1->b;
         if (g_keepOverlay) overlayShow();
@@ -1179,8 +1290,17 @@ static void initWebView(HWND hwnd, const std::wstring& webRoot, const std::wstri
                                     [](ICoreWebView2CompositionController* s, IUnknown*) -> HRESULT {
                                         HCURSOR c = nullptr;
                                         s->get_Cursor(&c);
+                                        HCURSOR prev = g_cursor;
                                         g_cursor = c;
-                                        if (c) SetCursor(c);
+                                        if (c) {
+                                            g_cursorNone = false;
+                                            cursorFadeStop();
+                                            SetCursor(c);
+                                        } else if (!g_cursorNone) {
+                                            // web zapnul cursor: none (nečinnost v okně): kurzor plynule zmizí
+                                            g_cursorNone = true;
+                                            if (!g_overlayHidden && cursorOverMainWindow()) cursorHideFaded(prev);
+                                        }
                                         return S_OK;
                                     }).Get(), &curTok);
 
@@ -1276,7 +1396,12 @@ static LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         if (!g_comp) break;
         {   // Windows posílá "pohyb" i bez pohybu (např. po skrytí vrstvy); počítá se jen skutečná změna polohy.
             static LPARAM lastPos = -1;
-            if (msg != WM_MOUSEMOVE || lp != lastPos) overlayShow();
+            if (msg != WM_MOUSEMOVE || lp != lastPos) {
+                bool wasHidden = g_overlayHidden;
+                overlayShow();
+                // kurzor se po skrytí musí vrátit hned, ne až při dalším pohybu
+                if (wasHidden && !g_cursorNone) SetCursor(g_cursor ? g_cursor : LoadCursorW(nullptr, IDC_ARROW));
+            }
             if (msg == WM_MOUSEMOVE) lastPos = lp;
         }
         POINT pt{ (int)(short)LOWORD(lp), (int)(short)HIWORD(lp) };
@@ -1298,10 +1423,12 @@ static LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         return 0;
     }
     case WM_KEYDOWN: case WM_SYSKEYDOWN:
+        if (g_overlayHidden && msg == WM_KEYDOWN && !(lp & (1 << 30)) && !(GetKeyState(VK_CONTROL) & 0x8000))
+            forwardKeyToWeb(wp);   // první stisk (opakování už dorazí webu samo)
         overlayShow();
         break;
     case WM_SETCURSOR:
-        if (LOWORD(lp) == HTCLIENT && g_overlayHidden) { SetCursor(nullptr); return TRUE; }
+        if (LOWORD(lp) == HTCLIENT && (g_overlayHidden || g_cursorNone)) { SetCursor(nullptr); return TRUE; }
         if (LOWORD(lp) == HTCLIENT && g_cursor) { SetCursor(g_cursor); return TRUE; }
         break;
     case WM_SETFOCUS:
@@ -1320,6 +1447,7 @@ static LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         }
         if (wp == 7) logPlaybackStats();
         if (wp == 8) overlayCheckIdle();
+        if (wp == 9) cursorFadeTick();
         if (wp == 6) { KillTimer(hwnd, 6); g_webview->ExecuteScript(L"String(window.__r)",
             Callback<ICoreWebView2ExecuteScriptCompletedHandler>([](HRESULT, LPCWSTR res) -> HRESULT {
                 logf("EVAL result: %s", narrow(res ? res : L"(null)").c_str()); return S_OK; }).Get()); }

@@ -469,9 +469,9 @@ const Player = () => {
         setImmersed(true);
     }, []);
 
-    const onBarMouseMove = React.useCallback((event) => {
-        event.nativeEvent.immersePrevented = true;
-    }, []);
+    // Lumen: ani kurzor stojící nad lištou (typicky v rohu obrazovky) nesmí rozhraní držet zobrazené,
+    // po nečinnosti se skryje stejně jako všude jinde; pohyb myši ho zase vrátí.
+    const onBarMouseMove = React.useCallback(() => {}, []);
 
     const onPlayPause = React.useCallback(() => {
         if (!menusOpen && !nextVideoPopupOpen && video.state.paused !== null) {
@@ -753,6 +753,30 @@ const Player = () => {
         return () => platform.shell.off('media-key', onMediaKey);
     }, [isEpg, video.state.paused, player.nextVideo, onPlayRequested, onPauseRequested, onNextVideoRequested]);
 
+    // Lumen: když obal (Windows) skrývá vrstvu rozhraní, první stisk klávesy se do webu nedostane.
+    // Obal ho proto pošle sám jako signál a tady se z něj udělá běžná událost klávesnice (šipky přetáčí i při skryté liště).
+    React.useEffect(() => {
+        if (!routeFocused) return;
+        const onLumenKey = (data) => {
+            if (!data || typeof data.key !== 'string') return;
+            const init = {
+                key: data.key,
+                code: data.code || '',
+                keyCode: data.keyCode || 0,
+                which: data.keyCode || 0,
+                shiftKey: !!data.shift,
+                ctrlKey: !!data.ctrl,
+                altKey: !!data.alt,
+                bubbles: true,
+                cancelable: true
+            };
+            (document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : document.body)
+                .dispatchEvent(new KeyboardEvent('keydown', init));
+        };
+        platform.shell.on('lumen-key', onLumenKey);
+        return () => platform.shell.off('lumen-key', onLumenKey);
+    }, [routeFocused]);
+
     useShortcut('seekForward', React.useCallback((combo) => {
         const seekDuration = combo === 1 ? settings.seekShortTimeDuration : settings.seekTimeDuration;
         onKeyboardSeekRequested(seekDuration);
@@ -871,6 +895,8 @@ const Player = () => {
         }
 
         const onKeyDown = (e) => {
+            // Lumen: obal skrývá vrstvu rozhraní podle nečinnosti; stisk klávesy (třeba přetáčení) je aktivita
+            platform.shell.send('lumen-activity');
             const keyboardKey = getKeyboardShortcutKey(e);
             if (keyboardKey !== 'Space' || e.repeat) return;
             if (menusOpen || detailsHold.current !== null || e.ctrlKey || e.metaKey || e.altKey) return;
