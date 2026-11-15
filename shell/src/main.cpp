@@ -622,7 +622,7 @@ static HWND g_fadeWnd = nullptr;
 static HDC g_fadeDc = nullptr;
 static HBITMAP g_fadeBmp = nullptr, g_fadeOld = nullptr;
 static ULONGLONG g_fadeStart = 0;
-static bool g_cursorNone = false;   // web chce skrytý kurzor (cursor: none)
+static bool g_cursorHidden = false;   // kurzor je skrytý pro nečinnost; vrací ho pohyb myši
 static const ULONGLONG FADE_MS = 300;
 
 static void cursorFadeStop() {
@@ -723,6 +723,7 @@ static void forwardKeyToWeb(WPARAM vk) {
 
 static void overlayShow() {
     cursorFadeStop();
+    g_cursorHidden = false;
     g_lastActivity = GetTickCount64();
     if (g_overlayHidden && g_controller) {
         g_controller->put_IsVisible(TRUE);
@@ -736,7 +737,7 @@ static void overlayShow() {
 static bool g_keepOverlay = false;
 
 static void overlayCheckIdle() {
-    if (g_overlayHidden || g_keepOverlay || !g_fullscreen || !g_controller) return;
+    if (!g_controller || (g_cursorHidden && (g_overlayHidden || g_keepOverlay || !g_fullscreen))) return;
     if (GetTickCount64() - g_lastActivity < 3500) return;
     char* p = mpv_get_property_string(g_mpv, "pause");
     char* t = mpv_get_property_string(g_mpv, "time-pos");
@@ -744,7 +745,12 @@ static void overlayCheckIdle() {
     if (p) mpv_free(p);
     if (t) mpv_free(t);
     if (!playing) return;
-    if (cursorOverMainWindow()) cursorHideFaded(g_cursor);
+    // kurzor se při nečinnosti skryje vždy (i v okně), vrátí ho až skutečný pohyb myši
+    if (!g_cursorHidden) {
+        g_cursorHidden = true;
+        if (cursorOverMainWindow()) cursorHideFaded(g_cursor);
+    }
+    if (g_overlayHidden || g_keepOverlay || !g_fullscreen) return;
     g_controller->put_IsVisible(FALSE);
     g_overlayHidden = true;
     logf("overlay: hidden (idle)");
@@ -1066,7 +1072,7 @@ static void discordCommand(const std::string& method, const Json* arg) {
 #pragma comment(lib, "urlmon.lib")
 #pragma comment(lib, "bcrypt.lib")
 
-static const char* LUMEN_VERSION = "2.1.5";   // držet shodně s installer\setup.cpp a setup.rc
+static const char* LUMEN_VERSION = "2.1.6";   // držet shodně s installer\setup.cpp a setup.rc
 static std::atomic<bool> g_updating{false};
 static std::wstring exeDir();
 
@@ -1290,17 +1296,8 @@ static void initWebView(HWND hwnd, const std::wstring& webRoot, const std::wstri
                                     [](ICoreWebView2CompositionController* s, IUnknown*) -> HRESULT {
                                         HCURSOR c = nullptr;
                                         s->get_Cursor(&c);
-                                        HCURSOR prev = g_cursor;
                                         g_cursor = c;
-                                        if (c) {
-                                            g_cursorNone = false;
-                                            cursorFadeStop();
-                                            SetCursor(c);
-                                        } else if (!g_cursorNone) {
-                                            // web zapnul cursor: none (nečinnost v okně): kurzor plynule zmizí
-                                            g_cursorNone = true;
-                                            if (!g_overlayHidden && cursorOverMainWindow()) cursorHideFaded(prev);
-                                        }
+                                        if (c && !g_cursorHidden) SetCursor(c);
                                         return S_OK;
                                     }).Get(), &curTok);
 
@@ -1397,10 +1394,10 @@ static LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         {   // Windows posílá "pohyb" i bez pohybu (např. po skrytí vrstvy); počítá se jen skutečná změna polohy.
             static LPARAM lastPos = -1;
             if (msg != WM_MOUSEMOVE || lp != lastPos) {
-                bool wasHidden = g_overlayHidden;
+                bool wasHidden = g_overlayHidden || g_cursorHidden;
                 overlayShow();
                 // kurzor se po skrytí musí vrátit hned, ne až při dalším pohybu
-                if (wasHidden && !g_cursorNone) SetCursor(g_cursor ? g_cursor : LoadCursorW(nullptr, IDC_ARROW));
+                if (wasHidden) SetCursor(g_cursor ? g_cursor : LoadCursorW(nullptr, IDC_ARROW));
             }
             if (msg == WM_MOUSEMOVE) lastPos = lp;
         }
@@ -1428,7 +1425,7 @@ static LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         overlayShow();
         break;
     case WM_SETCURSOR:
-        if (LOWORD(lp) == HTCLIENT && (g_overlayHidden || g_cursorNone)) { SetCursor(nullptr); return TRUE; }
+        if (LOWORD(lp) == HTCLIENT && (g_overlayHidden || g_cursorHidden)) { SetCursor(nullptr); return TRUE; }
         if (LOWORD(lp) == HTCLIENT && g_cursor) { SetCursor(g_cursor); return TRUE; }
         break;
     case WM_SETFOCUS:
